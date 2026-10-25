@@ -1,17 +1,25 @@
 const FILE = 'exomaly-content.json';
 
+async function readStream(stream) {
+  const chunks = [];
+  for await (const c of stream) chunks.push(Buffer.from(c));
+  return Buffer.concat(chunks).toString('utf8');
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   try {
-    const { put, list } = await import('@vercel/blob');
+    const { put, get } = await import('@vercel/blob');
 
     if (req.method === 'GET') {
-      const found = await list({ prefix: FILE, limit: 5 });
-      const blob = found.blobs.find((b) => b.pathname === FILE);
-      if (!blob) return res.status(200).json({ data: null });
-      const r = await fetch(blob.url + '?t=' + Date.now(), { cache: 'no-store' });
-      if (!r.ok) return res.status(200).json({ data: null });
-      return res.status(200).json({ data: await r.json() });
+      let result = null;
+      try {
+        result = await get(FILE, { access: 'private', useCache: false });
+      } catch (e) {
+        result = null;
+      }
+      if (!result || result.statusCode !== 200 || !result.stream) return res.status(200).json({ data: null });
+      return res.status(200).json({ data: JSON.parse(await readStream(result.stream)) });
     }
 
     if (req.method === 'POST') {
@@ -23,7 +31,7 @@ module.exports = async (req, res) => {
       if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = null; } }
       if (!body || typeof body !== 'object' || !Array.isArray(body.skladGlowny)) return res.status(400).json({ error: 'Nieprawidłowe dane' });
       await put(FILE, JSON.stringify(body), {
-        access: 'public',
+        access: 'private',
         contentType: 'application/json',
         addRandomSuffix: false,
         allowOverwrite: true,
