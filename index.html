@@ -276,11 +276,11 @@ body{padding-inline:0}
 .tabs2 button[aria-selected="true"]{background:var(--glow);color:#000}
 .tick2{margin-top:76px;background:var(--glow);color:#000;overflow:hidden;white-space:nowrap;height:38px;display:flex;align-items:center;position:relative;z-index:2}
 .tick2[hidden]{display:none}
-.tk2{display:inline-flex;align-items:center;animation:tk2 linear infinite;will-change:transform}
+.tk2{display:flex;flex:none;width:max-content;align-items:center;animation:tk2 linear infinite;will-change:transform;backface-visibility:hidden;transform:translate3d(0,0,0)}
 .tick2:hover .tk2{animation-play-state:paused}
 .tk2 i{font-style:normal;font-family:var(--f-display);font-weight:700;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:0 22px}
 .tk2 em{font-style:normal;opacity:.5;font-size:.7rem}
-@keyframes tk2{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes tk2{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
 .view{display:none;padding:56px 0 90px;min-height:70vh}
 .view.on{display:block;animation:viewIn .55s cubic-bezier(.2,.8,.2,1) both}
 @keyframes viewIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -606,10 +606,13 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
 /* ---------- pasek aktualności ---------- */
 (function(){
   if(!NEWS.length) return;
-  var one=NEWS.map(function(a,k){ return '<i data-open="news" data-idx="'+k+'">'+esc(a.tytul||a.tresc)+'</i><em>•</em>'; }).join('');
+  var base=NEWS.map(function(a,k){ return '<i data-open="news" data-idx="'+k+'">'+esc(a.tytul||a.tresc)+'</i><em>•</em>'; }).join('');
+  var times=Math.max(1,Math.ceil(3200/(NEWS.length*260)));
+  var one=new Array(times+1).join(base);
   var tk=$('tk'); tk.innerHTML=one+one;
-  tk.style.animationDuration=Math.max(18,NEWS.length*7)+'s';
   $('tick').hidden=false;
+  var half=tk.scrollWidth/2;
+  tk.style.animationDuration=Math.max(20,Math.round(half/70))+'s';
 })();
 
 /* ---------- najbliższy mecz z odliczaniem ---------- */
