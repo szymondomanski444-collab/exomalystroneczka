@@ -128,9 +128,7 @@ function normalize(o){
   o=o||{};
   o.druzyna=Object.assign({opis:'',ligaLink:''},o.druzyna||{});
   o.onas=Object.assign({naglowek:'O nas',tekst:''},o.onas||{});
-  o.social=Object.assign({x:'',youtube:'',twitch:'',tiktok:'',instagram:'',tiktokPosts:[],instagramPosts:[]},o.social||{});
-  if(!Array.isArray(o.social.tiktokPosts)) o.social.tiktokPosts=[];
-  if(!Array.isArray(o.social.instagramPosts)) o.social.instagramPosts=[];
+  o.social=Object.assign({instagram:'',tiktok:'',discord:''},o.social||{});
   LISTS.forEach(function(s){ if(!Array.isArray(o[s.k])) o[s.k]=[]; });
   return o;
 }
@@ -179,16 +177,12 @@ function render(){
   h+=section('O nas',
     '<div class="grid"><label class="fld wide"><span>Nagłówek</span><input data-path="onas.naglowek" value="'+esc(S.onas.naglowek)+'"></label>'+
     '<label class="fld wide"><span>Tekst (akapity oddziel pustą linijką)</span><textarea data-path="onas.tekst" style="min-height:220px">'+esc(S.onas.tekst)+'</textarea></label></div>');
-  h+=section('Social (kanały i posty)',
-    '<p class="hint">Wpisz nick albo pełny link. Puste pola są ukrywane na stronie.</p>'+
+  h+=section('Social (ikony przy prawym brzegu)',
+    '<p class="hint">Wpisz nick albo pełny link. Puste pola ukrywają ikonę.</p>'+
     '<div class="grid">'+
-    '<label class="fld"><span>X (Twitter): nick</span><input data-path="social.x" value="'+esc(S.social.x)+'"></label>'+
-    '<label class="fld"><span>YouTube: link lub @nick</span><input data-path="social.youtube" value="'+esc(S.social.youtube)+'"></label>'+
-    '<label class="fld"><span>Twitch: nick lub link</span><input data-path="social.twitch" value="'+esc(S.social.twitch)+'"></label>'+
-    '<label class="fld"><span>TikTok: nick</span><input data-path="social.tiktok" value="'+esc(S.social.tiktok)+'"></label>'+
-    '<label class="fld"><span>Instagram: nick</span><input data-path="social.instagram" value="'+esc(S.social.instagram)+'"></label>'+
-    '<label class="fld wide"><span>Linki do filmów TikTok (każdy w nowej linijce)</span><textarea data-lines="social.tiktokPosts">'+esc(S.social.tiktokPosts.join('\n'))+'</textarea></label>'+
-    '<label class="fld wide"><span>Linki do postów Instagram (każdy w nowej linijce)</span><textarea data-lines="social.instagramPosts">'+esc(S.social.instagramPosts.join('\n'))+'</textarea></label>'+
+    '<label class="fld"><span>Instagram: nick lub link</span><input data-path="social.instagram" value="'+esc(S.social.instagram)+'"></label>'+
+    '<label class="fld"><span>TikTok: nick lub link</span><input data-path="social.tiktok" value="'+esc(S.social.tiktok)+'"></label>'+
+    '<label class="fld"><span>Discord: link zaproszenia</span><input data-path="social.discord" value="'+esc(S.social.discord)+'"></label>'+
     '</div>');
   LISTS.forEach(function(sec){
     h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button></div>'+listHTML(sec));
