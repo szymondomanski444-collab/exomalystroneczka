@@ -109,7 +109,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ice)}
 (function(){
 'use strict';
 var KEY='exo_dane_draft', OK='exo_admin_pass';
-var API='/.netlify/functions/';
+var API='/api/';
 var $=function(id){ return document.getElementById(id); };
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }

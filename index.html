@@ -914,7 +914,7 @@ function loadData(){
     }
   }catch(e){}
   var timeout=new Promise(function(r){ setTimeout(function(){ r(null); },2500); });
-  var fetched=fetch('/.netlify/functions/content',{cache:'no-store'})
+  var fetched=fetch('/api/content',{cache:'no-store'})
     .then(function(r){ return r.ok?r.json():null; })
     .catch(function(){ return null; });
   return Promise.race([fetched,timeout]).then(function(res){
