@@ -609,7 +609,7 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
 /* ---------- pasek aktualności ---------- */
 (function(){
   if(!NEWS.length) return;
-  var one=NEWS.map(function(a,k){ return '<i data-open="news" data-idx="'+k+'">'+esc(a.tytul||a.tresc)+'</i><em>✦</em>'; }).join('');
+  var one=NEWS.map(function(a,k){ return '<i data-open="news" data-idx="'+k+'">'+esc(a.tytul||a.tresc)+'</i><em>•</em>'; }).join('');
   var tk=$('tk'); tk.innerHTML=one+one;
   tk.style.animationDuration=Math.max(18,NEWS.length*7)+'s';
   $('tick').hidden=false;
