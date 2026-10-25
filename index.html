@@ -339,6 +339,11 @@ body{padding-inline:0}
 .about-s{display:grid;gap:12px}
 .pgrid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
 .view[data-view="partnerzy"]{min-height:auto;padding-bottom:40px}
+.pmain{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;max-width:900px;margin:0 auto 36px}
+.pt-main{min-height:170px}
+.pt-empty{border-style:dashed;color:var(--muted);font-weight:500;font-size:.9rem}
+.pgrid-c{justify-content:center;max-width:900px;margin:0 auto;grid-template-columns:repeat(auto-fill,minmax(200px,220px))}
+@media (max-width:640px){.pmain{grid-template-columns:1fr}}
 .pgrid{grid-template-columns:repeat(auto-fill,minmax(200px,240px));justify-content:start}
 @media (max-width:640px){.pgrid{grid-template-columns:1fr 1fr}}
 .pt{display:flex;align-items:center;justify-content:center;min-height:130px;padding:18px;background:var(--navy);border:1px solid var(--line);border-radius:20px;text-decoration:none;color:var(--muted);font-weight:700;text-align:center;transition:transform .35s ease,border-color .35s,color .35s}
@@ -512,7 +517,7 @@ body{padding-inline:0}
 
   <section class="view" data-view="partnerzy">
     <div class="head2 a" style="--i:0"><div><p class="eyebrow">Wspierają nas</p><h2 class="sec">Partnerzy</h2></div></div>
-    <div class="pgrid" id="partners"></div>
+    <div id="partners"></div>
   </section>
 
   <section class="view" data-view="aktualnosci">
@@ -709,11 +714,17 @@ function socHref(kind,v){
 })();
 
 /* ---------- partnerzy ---------- */
-$('partners').innerHTML=PARTS.length?PARTS.map(function(p,i){
+function ptCard(p,i,cls){
   var inner=p.logo?'<img src="'+esc(p.logo)+'" alt="'+esc(p.nazwa)+'">':esc(p.nazwa);
   var href=/^https?:\/\//i.test(p.link||'')?p.link:'';
-  return href?'<a class="pt" style="--i:'+i+'" href="'+esc(href)+'" target="_blank" rel="noopener">'+inner+'</a>':'<div class="pt" data-open="partner" data-idx="'+i+'" style="--i:'+i+'">'+inner+'</div>';
-}).join(''):'<div class="empty2">Szukamy partnerów.</div>';
+  return href?'<a class="pt '+cls+'" style="--i:'+i+'" href="'+esc(href)+'" target="_blank" rel="noopener">'+inner+'</a>':'<div class="pt '+cls+'" data-open="partner" data-idx="'+i+'" style="--i:'+i+'">'+inner+'</div>';
+}
+var mainHtml='';
+for(var k=0;k<3;k++){
+  mainHtml+=PARTS[k]?ptCard(PARTS[k],k,'pt-main'):'<div class="pt pt-main pt-empty">Miejsce na partnera</div>';
+}
+var restHtml=PARTS.slice(3).map(function(p,i){ return ptCard(p,i+3,'pt-rest'); }).join('');
+$('partners').innerHTML='<div class="pmain">'+mainHtml+'</div>'+(restHtml?'<div class="pgrid pgrid-c">'+restHtml+'</div>':'');
 
 /* ---------- osiągnięcia: oś czasu ---------- */
 function achKey(a){
