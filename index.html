@@ -5,14 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}
 /* Halloween - dekoracje */
-.hw{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:2}
-.hw span{position:absolute;top:-80px;user-select:none;line-height:1;animation:hwFall linear infinite;filter:drop-shadow(0 0 10px rgba(255,120,0,.55))}
-.hw .hwb{font-size:44px;filter:drop-shadow(0 0 10px rgba(180,80,255,.7))}
-.hw .hwp{font-size:52px}
-.hw .hwg{font-size:50px;filter:drop-shadow(0 0 12px rgba(200,230,255,.8))}
-.hw .hwx{font-size:40px}
-@keyframes hwFall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(115vh) rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.hw{display:none}}
+.hw{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}
+.hw .web{position:absolute;top:0;width:150px;height:150px;opacity:.45}
+.hw .web.l{left:0}
+.hw .web.r{right:0;transform:scaleX(-1)}
+.hw .spider{position:absolute;top:0;left:calc(50% + 120px);width:40px;transform-origin:50% 0;animation:hwSwing 4s ease-in-out infinite}
+.hw .spider .thread{position:absolute;left:50%;top:0;width:1px;height:46px;background:rgba(255,255,255,.55);transform:translateX(-50%)}
+.hw .spider .bug{position:absolute;left:0;top:44px;font-size:30px;line-height:1;filter:drop-shadow(0 0 4px rgba(0,0,0,.6))}
+.hw .ghost{position:absolute;font-size:34px;opacity:.7;filter:drop-shadow(0 0 10px rgba(200,230,255,.7));animation:hwBob 5s ease-in-out infinite}
+.hw .g1{left:6%;bottom:12%}
+.hw .g2{right:7%;bottom:30%;font-size:28px;animation-duration:6.5s;animation-delay:-2s}
+@keyframes hwSwing{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes hwBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+@media (prefers-reduced-motion:reduce){.hw .spider,.hw .ghost{animation:none}}
 </style>
 <title>Exomaly</title>
 <meta name="description" content="Exomaly – polska drużyna CS2 w Starter League. Skład, mecze, terminarz, osiągnięcia i aktualności.">
@@ -421,7 +426,7 @@ body{padding-inline:0}
 </style>
 </head>
 <body>
-<div class="hw" aria-hidden="true"><span class="hwp" style="left:3%;animation-duration:12s;animation-delay:-0.0s">🎃</span><span class="hwb" style="left:10%;animation-duration:9s;animation-delay:-1.7s">🦇</span><span class="hwg" style="left:18%;animation-duration:15s;animation-delay:-3.4s">👻</span><span class="hwx" style="left:25%;animation-duration:11s;animation-delay:-5.1s">🕷️</span><span class="hwp" style="left:32%;animation-duration:13s;animation-delay:-6.8s">🎃</span><span class="hwb" style="left:39%;animation-duration:8s;animation-delay:-8.5s">🦇</span><span class="hwx" style="left:46%;animation-duration:16s;animation-delay:-10.2s">🕸️</span><span class="hwp" style="left:53%;animation-duration:10s;animation-delay:-11.9s">🎃</span><span class="hwg" style="left:60%;animation-duration:14s;animation-delay:-13.6s">👻</span><span class="hwb" style="left:67%;animation-duration:9s;animation-delay:-15.3s">🦇</span><span class="hwp" style="left:74%;animation-duration:12s;animation-delay:-17.0s">🎃</span><span class="hwx" style="left:81%;animation-duration:11s;animation-delay:-18.7s">🕷️</span><span class="hwb" style="left:88%;animation-duration:8s;animation-delay:-20.4s">🦇</span><span class="hwg" style="left:95%;animation-duration:15s;animation-delay:-22.1s">👻</span><span class="hwp" style="left:14%;animation-duration:18s;animation-delay:-23.8s">🎃</span><span class="hwb" style="left:50%;animation-duration:20s;animation-delay:-25.5s">🦇</span></div>
+<div class="hw" aria-hidden="true"><svg class="web l" viewBox="0 0 150 150" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width="1"><path d="M0 0 L150 0 M0 0 L0 150"/><path d="M0 0 L120 0 M0 0 L0 120"/><path d="M0 0 L90 0 M0 0 L0 90"/><path d="M0 0 L60 0 M0 0 L0 60"/><path d="M0 0 L30 0 M0 0 L0 30"/><path d="M30 0 Q 8 8 0 30 M70 0 Q 35 30 0 70 M115 0 Q 60 60 0 115"/></g></svg><svg class="web r" viewBox="0 0 150 150" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width="1"><path d="M0 0 L150 0 M0 0 L0 150"/><path d="M0 0 L120 0 M0 0 L0 120"/><path d="M0 0 L90 0 M0 0 L0 90"/><path d="M0 0 L60 0 M0 0 L0 60"/><path d="M0 0 L30 0 M0 0 L0 30"/><path d="M30 0 Q 8 8 0 30 M70 0 Q 35 30 0 70 M115 0 Q 60 60 0 115"/></g></svg><div class="spider"><span class="thread"></span><span class="bug">🕷️</span></div><span class="ghost g1">👻</span><span class="ghost g2">👻</span></div>
 
 <canvas id="bg" aria-hidden="true"></canvas>
 <div class="c2dot" id="c2dot" aria-hidden="true"></div><div class="c2ring" id="c2ring" aria-hidden="true"></div>
