@@ -431,6 +431,7 @@ body{padding-inline:0}
     <button type="button" role="tab" data-go="osiagniecia">Osiągnięcia</button>
     <button type="button" role="tab" data-go="partnerzy">Partnerzy</button>
     <button type="button" role="tab" data-go="aktualnosci">Aktualności</button>
+    <button type="button" role="tab" data-go="prywatnosc">Prywatność</button>
   </div>
 </nav>
 
@@ -498,6 +499,24 @@ body{padding-inline:0}
   <section class="view" data-view="osiagniecia">
     <div class="head2 a" style="--i:0"><div><p class="eyebrow">Historia</p><h2 class="sec">Osiągnięcia</h2></div></div>
     <div class="tl" id="timeline"></div>
+  </section>
+
+  <section class="view" data-view="prywatnosc">
+    <div class="head2 a" style="--i:0"><div><p class="eyebrow">Dane i zasady</p><h2 class="sec">Prywatność</h2></div></div>
+    <article class="priv">
+      <p class="priv-intro">Ta polityka opisuje, jakie dane są przetwarzane podczas korzystania z tej strony, w jakim celu, na jakiej podstawie oraz jakie przysługują Ci prawa.</p>
+      <div class="priv-sec"><h3>1. Kontakt</h3><p>W sprawach związanych z prywatnością skontaktuj się z nami pod adresem: [adres e-mail].</p></div>
+      <div class="priv-sec"><h3>2. Jakie dane przetwarzamy</h3><p>Strona nie wymaga rejestracji ani logowania i nie zawiera formularzy, w których podaje się dane osobowe. Podczas wizyty serwer hostingowy automatycznie zapisuje dane techniczne, takie jak:</p><ul><li>adres IP,</li><li>data i godzina połączenia,</li><li>rodzaj przeglądarki i systemu operacyjnego,</li><li>adres odwiedzanej strony oraz adres strony, z której nastąpiło przejście.</li></ul></div>
+      <div class="priv-sec"><h3>3. Cele i podstawa prawna</h3><p>Dane techniczne przetwarzamy w celu zapewnienia prawidłowego działania strony, diagnozowania błędów oraz zabezpieczenia serwisu przed nadużyciami. Podstawą prawną jest art. 6 ust. 1 lit. f RODO, czyli prawnie uzasadniony interes polegający na utrzymaniu bezpiecznego i sprawnie działającego serwisu.</p></div>
+      <div class="priv-sec"><h3>4. Pliki cookies i pamięć przeglądarki</h3><p>Strona nie wykorzystuje plików cookies do śledzenia ani analityki i nie zapisuje w Twojej przeglądarce żadnych danych o Tobie.</p></div>
+      <div class="priv-sec"><h3>5. Odbiorcy danych</h3><p>Dane techniczne są przetwarzane przez dostawcę hostingu, firmę Vercel Inc. (USA), działającą jako podmiot przetwarzający. Dane mogą być przekazywane poza Europejski Obszar Gospodarczy na podstawie mechanizmów przewidzianych w RODO, w tym standardowych klauzul umownych.</p></div>
+      <div class="priv-sec"><h3>6. Okres przechowywania</h3><p>Dane techniczne są przechowywane przez okres, w którym dostawca hostingu prowadzi logi połączeń, nie dłużej niż jest to niezbędne do celów wskazanych w punkcie 3.</p></div>
+      <div class="priv-sec"><h3>7. Twoje prawa</h3><p>Przysługuje Ci prawo do:</p><ul><li>dostępu do swoich danych,</li><li>sprostowania danych,</li><li>usunięcia danych („prawo do bycia zapomnianym”),</li><li>ograniczenia przetwarzania,</li><li>wniesienia sprzeciwu wobec przetwarzania,</li><li>przenoszenia danych,</li><li>wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych, ul. Stawki 2, 00-193 Warszawa.</li></ul><p>Aby skorzystać z tych praw, skontaktuj się z nami pod adresem podanym w punkcie 1.</p></div>
+      <div class="priv-sec"><h3>8. Dobrowolność podania danych</h3><p>Korzystanie ze strony jest dobrowolne. Dane techniczne przekazuje przeglądarka automatycznie w trakcie połączenia z serwerem, a ich brak uniemożliwia wyświetlenie strony.</p></div>
+      <div class="priv-sec"><h3>9. Linki do innych serwisów</h3><p>Strona może zawierać odnośniki do serwisów zewnętrznych. Po ich otwarciu obowiązują zasady prywatności tych serwisów, a nie niniejsza polityka.</p></div>
+      <div class="priv-sec"><h3>10. Zmiany polityki</h3><p>Politykę prywatności możemy aktualizować. Aktualna wersja jest zawsze dostępna na tej stronie.</p></div>
+      <p class="priv-upd">Data ostatniej aktualizacji: 25.10.2026</p>
+    </article>
   </section>
 
   <section class="view" data-view="partnerzy">
@@ -735,7 +754,7 @@ function renderTimeline(){
 }
 
 /* ---------- zakładki ---------- */
-var VIEWS=['home','sklad','mecze','onas','osiagniecia','partnerzy','aktualnosci'];
+var VIEWS=['home','sklad','mecze','onas','osiagniecia','partnerzy','aktualnosci','prywatnosc'];
 function go(name,push){
   if(VIEWS.indexOf(name)<0) name='home';
   document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('on',v.getAttribute('data-view')===name); });
