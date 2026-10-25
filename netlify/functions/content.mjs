@@ -16,7 +16,7 @@ export default async (req) => {
 
   if (req.method === "POST") {
     const expected = process.env.ADMIN_PASSWORD;
-    if (!expected) return json({ error: "Brak ADMIN_PASSWORD w ustawieniach Netlify" }, 500);
+    if (!expected) return json({ error: "Brak ADMIN_PASSWORD w ustawieniach serwera" }, 500);
     if ((req.headers.get("x-admin-pass") || "") !== expected) return json({ error: "Złe hasło" }, 401);
 
     const body = await req.json().catch(() => null);

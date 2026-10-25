@@ -86,7 +86,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ice)}
     </div>
   </div>
   <main class="wrap" style="padding-bottom:60px">
-    <div class="note">Kliknij <b>Zapisz na stronie</b>, żeby zmiany były widoczne na stronie po kilku sekundach. Nie musisz nic wgrywać na Netlify. <b>Podgląd na żywo</b> po prawej pokazuje zmiany jeszcze przed zapisem.</div>
+    <div class="note">Kliknij <b>Zapisz na stronie</b>, żeby zmiany były widoczne na stronie po kilku sekundach.  <b>Podgląd na żywo</b> po prawej pokazuje zmiany jeszcze przed zapisem.</div>
     <div id="st"></div>
     <div class="split">
       <div>
@@ -284,7 +284,7 @@ $('gateBtn').addEventListener('click',function(){
     .then(function(r){
       if(r.ok){ try{ sessionStorage.setItem(OK,p); }catch(e){} $('gateMsg').textContent=''; openApp(); }
       else if(r.status===401){ $('gateMsg').textContent='Złe hasło.'; }
-      else { $('gateMsg').textContent='Serwer nie odpowiada poprawnie (błąd '+r.status+'). Sprawdź ustawienia Netlify.'; }
+      else { $('gateMsg').textContent='Serwer nie odpowiada poprawnie (błąd '+r.status+'). Sprawdź ustawienia serwera.'; }
     })
     .catch(function(){ $('gateMsg').textContent='Brak połączenia z serwerem.'; });
 });
