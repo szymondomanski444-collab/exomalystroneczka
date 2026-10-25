@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Panel Exomaly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--bg2:#0c0c0c;--card:#131313;--line:#2c2c2c;--fg:#fff;--mut:#9b9b9b;--ice:#d6d6d6;--red:#e05a4f;--ok:#7fd18b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Manrope,system-ui,sans-serif;font-size:15px;line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+.wrap{max-width:1500px;margin:0 auto;padding:0 18px}
+h1,h2,h3{font-family:Unbounded,"Arial Black",system-ui,sans-serif;font-weight:500;margin:0}
+h1{font-size:1.1rem;letter-spacing:.12em}
+.bar{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:12px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,.filebtn{background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:600;font-size:.88rem;display:inline-block}
+button:hover:not(:disabled),.filebtn:hover{border-color:var(--fg)}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--fg);color:#000;border-color:var(--fg)}
+button.danger{color:var(--red)}
+button.danger:hover:not(:disabled){border-color:var(--red)}
+#st{font-size:.87rem;color:var(--mut);padding:12px 0 0;min-height:1.4em}
+#st.err{color:var(--red)}
+#st.ok{color:var(--ok)}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
+.pvbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:14px 0 0;position:sticky;top:70px;z-index:4}
+.pvbar select{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 10px;color:var(--fg)}
+#pv{position:sticky;top:124px;width:100%;height:calc(100vh - 150px);border:1px solid var(--line);border-radius:14px;background:#000}
+@media (max-width:1000px){.split{grid-template-columns:1fr}#pv{position:static;height:70vh}}
+details.sec{background:var(--bg2);border:1px solid var(--line);border-radius:16px;margin:16px 0;overflow:hidden}
+details.sec>summary{cursor:pointer;list-style:none;padding:16px 18px;font-family:Unbounded,"Arial Black",sans-serif;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between}
+details.sec>summary::after{content:"▾";color:var(--mut)}
+details.sec:not([open])>summary::after{content:"▸"}
+details.sec>summary::-webkit-details-marker{display:none}
+.sec-b{padding:4px 18px 18px;border-top:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.fld{display:grid;gap:6px;font-size:.8rem;color:var(--mut)}
+.fld.wide{grid-column:1/-1}
+input,textarea,select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg)}
+textarea{min-height:84px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ice)}
+.item{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px;background:var(--card)}
+.item-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.item-h b{font-family:Unbounded,"Arial Black",sans-serif;font-size:.8rem;color:var(--mut)}
+.ctl{display:flex;gap:6px}
+.ctl button{padding:5px 10px;font-size:.8rem}
+.addrow{margin-top:14px}
+.hint{color:var(--mut);font-size:.88rem;margin:14px 0 0}
+.note{border:1px dashed var(--line);border-radius:12px;padding:12px 14px;color:var(--mut);font-size:.88rem;margin-top:14px}
+#gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
+#gate .box{width:min(380px,100%);background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:26px;display:grid;gap:12px}
+#gate p{color:var(--mut);margin:0;font-size:.9rem}
+#gateMsg{color:var(--red);font-size:.85rem;min-height:1em}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="box">
+    <h1>Panel Exomaly</h1>
+    <p>Wpisz hasło administratora.</p>
+    <input type="password" id="pw" placeholder="Hasło" autocomplete="current-password">
+    <button class="primary" id="gateBtn" type="button">Wejdź</button>
+    <div id="gateMsg"></div>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <div class="bar">
+    <div class="wrap">
+      <h1>Panel Exomaly</h1>
+      <div class="acts">
+        <button type="button" class="primary" id="save">Zapisz na stronie</button>
+        <button type="button" id="prev">Podgląd</button>
+        <button type="button" id="dl">Pobierz kopię (content.js)</button>
+        <label class="filebtn">Wczytaj plik<input type="file" id="imp" accept=".js,text/javascript" hidden></label>
+        <button type="button" id="reset">Odrzuć zmiany</button>
+        <button type="button" id="logout">Wyloguj</button>
+      </div>
+    </div>
+  </div>
+  <main class="wrap" style="padding-bottom:60px">
+    <div class="note">Kliknij <b>Zapisz na stronie</b>, żeby zmiany były widoczne na stronie po kilku sekundach. Nie musisz nic wgrywać na Netlify. <b>Podgląd na żywo</b> po prawej pokazuje zmiany jeszcze przed zapisem.</div>
+    <div id="st"></div>
+    <div class="split">
+      <div>
+        <div class="pvbar">
+          <label><input type="checkbox" id="live" checked style="width:auto"> Podgląd na żywo</label>
+          <select id="pvView">
+            <option value="home">Start</option><option value="sklad">Skład</option><option value="mecze">Mecze</option>
+            <option value="onas">O nas</option><option value="partnerzy">Partnerzy</option><option value="aktualnosci">Aktualności</option>
+          </select>
+        </div>
+        <div id="editor"></div>
+      </div>
+      <iframe id="pv" title="Podgląd strony"></iframe>
+    </div>
+  </main>
+</div>
+
+<script src="content.js"></script>
+<script>
+(function(){
+'use strict';
+var KEY='exo_dane_draft', OK='exo_admin_pass';
+var API='/.netlify/functions/';
+var $=function(id){ return document.getElementById(id); };
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function pass(){ try{ return sessionStorage.getItem(OK)||''; }catch(e){ return ''; } }
+
+var LISTS=[
+  {k:'aktualnosci',t:'Aktualności (pasek i sekcja)',f:[{n:'data',l:'Data (RRRR-MM-DD)'},{n:'tytul',l:'Tytuł'},{n:'tresc',l:'Treść',area:1}],nf:{data:'',tytul:'',tresc:''}},
+  {k:'skladGlowny',t:'Główny skład',f:[{n:'nick',l:'Nick'},{n:'rola',l:'Rola'},{n:'faceit',l:'Poziom FACEIT (1-10, 0 = brak)',num:1},{n:'imie',l:'Imię (opcjonalnie)'},{n:'zdjecie',l:'Zdjęcie (ścieżka lub adres)'},{n:'opis',l:'Opis zawodnika (profil)',area:1}],nf:{nick:'',rola:'',faceit:0,imie:'',zdjecie:'',opis:''}},
+  {k:'akademia',t:'Akademia',f:[{n:'nick',l:'Nick'},{n:'rola',l:'Rola'},{n:'faceit',l:'Poziom FACEIT (1-10, 0 = brak)',num:1},{n:'imie',l:'Imię (opcjonalnie)'},{n:'zdjecie',l:'Zdjęcie (ścieżka lub adres)'},{n:'opis',l:'Opis zawodnika (profil)',area:1}],nf:{nick:'',rola:'',faceit:0,imie:'',zdjecie:'',opis:''}},
+  {k:'terminarz',t:'Terminarz (przyszłe mecze)',f:[{n:'data',l:'Data i godzina (RRRR-MM-DD GG:MM)'},{n:'przeciwnik',l:'Przeciwnik'},{n:'mapa',l:'Mapa'}],nf:{data:'',przeciwnik:'',mapa:''}},
+  {k:'wyniki',t:'Wyniki',f:[{n:'data',l:'Data (RRRR-MM-DD)'},{n:'przeciwnik',l:'Przeciwnik'},{n:'mapa',l:'Mapa'},{n:'my',l:'Nasze rundy',num:1},{n:'oni',l:'Rundy przeciwnika',num:1}],nf:{data:'',przeciwnik:'',mapa:'',my:0,oni:0}},
+  {k:'osiagniecia',t:'Osiągnięcia (oś czasu)',f:[{n:'data',l:'Data (rok lub RRRR-MM-DD)'},{n:'tytul',l:'Tytuł osiągnięcia'},{n:'opis',l:'Opis (opcjonalnie)',area:1}],nf:{data:'',tytul:'',opis:''}},
+  {k:'partnery',t:'Partnerzy',f:[{n:'nazwa',l:'Nazwa'},{n:'logo',l:'Logo (ścieżka lub adres)'},{n:'link',l:'Link (opcjonalnie)'}],nf:{nazwa:'',logo:'',link:''}}
+];
+function normalize(o){
+  o=o||{};
+  o.druzyna=Object.assign({opis:'',ligaLink:''},o.druzyna||{});
+  o.onas=Object.assign({naglowek:'O nas',tekst:''},o.onas||{});
+  o.social=Object.assign({x:'',youtube:'',twitch:'',tiktok:'',instagram:'',tiktokPosts:[],instagramPosts:[]},o.social||{});
+  if(!Array.isArray(o.social.tiktokPosts)) o.social.tiktokPosts=[];
+  if(!Array.isArray(o.social.instagramPosts)) o.social.instagramPosts=[];
+  LISTS.forEach(function(s){ if(!Array.isArray(o[s.k])) o[s.k]=[]; });
+  return o;
+}
+var base=null, S=null;
+var openSet={};
+function saveDraft(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} schedulePreview(); }
+function clearDraft(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+function status(msg,kind){ var s=$('st'); s.textContent=msg; s.className=kind||''; }
+function spec(k){ return LISTS.filter(function(s){ return s.k===k; })[0]; }
+
+var pvTimer=null;
+function schedulePreview(){
+  clearTimeout(pvTimer);
+  pvTimer=setTimeout(function(){
+    if(!$('live').checked) return;
+    $('pv').src='index.html?podglad=1&live=1&t='+Date.now()+'#'+$('pvView').value;
+  },450);
+}
+
+function field(k,i,f,val){
+  var v=val==null?'':val;
+  var attrs=' data-k="'+k+'" data-i="'+i+'" data-f="'+f.n+'"';
+  var input=f.area?'<textarea'+attrs+'>'+esc(v)+'</textarea>':'<input'+(f.num?' type="number" min="0" step="1"':'')+attrs+' value="'+esc(v)+'">';
+  return '<label class="fld'+(f.area?' wide':'')+'"><span>'+esc(f.l)+'</span>'+input+'</label>';
+}
+function listHTML(sec){
+  var arr=S[sec.k];
+  if(!arr.length) return '<p class="hint">Brak wpisów.</p>';
+  return arr.map(function(it,i){
+    var a='data-k="'+sec.k+'" data-i="'+i+'"';
+    return '<div class="item"><div class="item-h"><b>'+(i+1)+'.</b><div class="ctl">'+
+      '<button type="button" data-act="up" '+a+(i===0?' disabled':'')+'>↑</button>'+
+      '<button type="button" data-act="down" '+a+(i===arr.length-1?' disabled':'')+'>↓</button>'+
+      '<button type="button" class="danger" data-act="del" '+a+'>Usuń</button></div></div>'+
+      '<div class="grid">'+sec.f.map(function(f){ return field(sec.k,i,f,it[f.n]); }).join('')+'</div></div>';
+  }).join('');
+}
+function section(title,inner){
+  return '<details class="sec" data-key="'+esc(title)+'"'+(openSet[title]===false?'':' open')+'><summary>'+esc(title)+'</summary><div class="sec-b">'+inner+'</div></details>';
+}
+function render(){
+  var h='';
+  h+=section('Drużyna',
+    '<div class="grid"><label class="fld wide"><span>Opis pod nazwą (w hero)</span><textarea data-path="druzyna.opis">'+esc(S.druzyna.opis)+'</textarea></label>'+
+    '<label class="fld wide"><span>Link do strony drużyny w lidze</span><input data-path="druzyna.ligaLink" value="'+esc(S.druzyna.ligaLink)+'"></label></div>');
+  h+=section('O nas',
+    '<div class="grid"><label class="fld wide"><span>Nagłówek</span><input data-path="onas.naglowek" value="'+esc(S.onas.naglowek)+'"></label>'+
+    '<label class="fld wide"><span>Tekst (akapity oddziel pustą linijką)</span><textarea data-path="onas.tekst" style="min-height:220px">'+esc(S.onas.tekst)+'</textarea></label></div>');
+  h+=section('Social (kanały i posty)',
+    '<p class="hint">Wpisz nick albo pełny link. Puste pola są ukrywane na stronie.</p>'+
+    '<div class="grid">'+
+    '<label class="fld"><span>X (Twitter): nick</span><input data-path="social.x" value="'+esc(S.social.x)+'"></label>'+
+    '<label class="fld"><span>YouTube: link lub @nick</span><input data-path="social.youtube" value="'+esc(S.social.youtube)+'"></label>'+
+    '<label class="fld"><span>Twitch: nick lub link</span><input data-path="social.twitch" value="'+esc(S.social.twitch)+'"></label>'+
+    '<label class="fld"><span>TikTok: nick</span><input data-path="social.tiktok" value="'+esc(S.social.tiktok)+'"></label>'+
+    '<label class="fld"><span>Instagram: nick</span><input data-path="social.instagram" value="'+esc(S.social.instagram)+'"></label>'+
+    '<label class="fld wide"><span>Linki do filmów TikTok (każdy w nowej linijce)</span><textarea data-lines="social.tiktokPosts">'+esc(S.social.tiktokPosts.join('\n'))+'</textarea></label>'+
+    '<label class="fld wide"><span>Linki do postów Instagram (każdy w nowej linijce)</span><textarea data-lines="social.instagramPosts">'+esc(S.social.instagramPosts.join('\n'))+'</textarea></label>'+
+    '</div>');
+  LISTS.forEach(function(sec){
+    h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button></div>'+listHTML(sec));
+  });
+  $('editor').innerHTML=h;
+}
+$('editor').addEventListener('toggle',function(e){
+  var t=e.target; if(t.tagName==='DETAILS') openSet[t.getAttribute('data-key')]=t.open;
+},true);
+
+$('editor').addEventListener('input',function(e){
+  var t=e.target;
+  if(t.hasAttribute('data-path')){
+    var p=t.getAttribute('data-path').split('.'); S[p[0]][p[1]]=t.value;
+  } else if(t.hasAttribute('data-lines')){
+    var q=t.getAttribute('data-lines').split('.');
+    S[q[0]][q[1]]=t.value.split('\n').map(function(x){ return x.trim(); }).filter(Boolean);
+  } else if(t.hasAttribute('data-f')){
+    var k=t.getAttribute('data-k'), i=+t.getAttribute('data-i'), f=t.getAttribute('data-f');
+    var def=spec(k).f.filter(function(x){ return x.n===f; })[0];
+    S[k][i][f]=def&&def.num?(parseFloat(t.value)||0):t.value;
+  } else return;
+  saveDraft(); status('Zmiany są w szkicu. Kliknij „Zapisz na stronie”, żeby były widoczne.');
+});
+
+$('editor').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  var act=b.getAttribute('data-act'), k=b.getAttribute('data-k'), i=+b.getAttribute('data-i');
+  if(act==='add'){ S[k].push(clone(spec(k).nf)); }
+  else if(act==='del'){ if(!confirm('Usunąć ten wpis?')) return; S[k].splice(i,1); }
+  else if(act==='up'||act==='down'){ var j=act==='up'?i-1:i+1; var tmp=S[k][i]; S[k][i]=S[k][j]; S[k][j]=tmp; }
+  else return;
+  saveDraft(); render(); status('Zmiany są w szkicu. Kliknij „Zapisz na stronie”, żeby były widoczne.');
+});
+
+$('save').addEventListener('click',function(){
+  var btn=this; btn.disabled=true; status('Zapisuję…');
+  fetch(API+'content',{method:'POST',headers:{'content-type':'application/json','x-admin-pass':pass()},body:JSON.stringify(S)})
+    .then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; });
+    })
+    .then(function(res){
+      if(res.ok){
+        base=clone(S); clearDraft(); schedulePreview();
+        status('Zapisano. Zmiany będą widoczne na stronie po odświeżeniu (kilka sekund).','ok');
+      } else if(res.status===401){
+        status('Hasło przestało działać. Wyloguj się i zaloguj ponownie.',"err");
+      } else {
+        status('Nie udało się zapisać: '+(res.j.error||('błąd '+res.status)),'err');
+      }
+    })
+    .catch(function(){ status('Brak połączenia z serwerem. Zmiany są w szkicu, spróbuj ponownie.','err'); })
+    .then(function(){ btn.disabled=false; });
+});
+
+$('prev').addEventListener('click',function(){ saveDraft(); window.open('index.html?podglad=1','_blank'); });
+$('live').addEventListener('change',schedulePreview);
+$('pvView').addEventListener('change',schedulePreview);
+$('dl').addEventListener('click',function(){
+  var txt='window.DANE = '+JSON.stringify(S,null,2)+';\n';
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/javascript'})); a.download='content.js'; a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); },1000);
+});
+$('imp').addEventListener('change',function(){
+  var f=this.files[0]; this.value=''; if(!f) return;
+  f.text().then(function(t){
+    var got=new Function('var window={};'+t+'\nreturn window.DANE;')();
+    if(!got||typeof got!=='object') throw new Error('brak');
+    S=normalize(clone(got)); saveDraft(); render(); status('Wczytano plik jako szkic. Kliknij „Zapisz na stronie”, żeby go zachować.');
+  }).catch(function(){ status('Nie udało się wczytać pliku.','err'); });
+});
+$('reset').addEventListener('click',function(){
+  if(!confirm('Odrzucić niezapisane zmiany?')) return;
+  clearDraft(); S=clone(base); render(); schedulePreview(); status('Przywrócono zapisaną wersję.');
+});
+$('logout').addEventListener('click',function(){ try{ sessionStorage.removeItem(OK); }catch(e){} location.reload(); });
+
+function loadServer(){
+  return fetch(API+'content',{cache:'no-store'})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(j){ return (j&&j.data)?j.data:null; })
+    .catch(function(){ return null; });
+}
+function openApp(){
+  $('gate').hidden=true; $('app').hidden=false;
+  loadServer().then(function(serverData){
+    base=normalize(clone(serverData||window.DANE||{}));
+    var draft=null; try{ draft=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
+    S=draft?normalize(draft):clone(base);
+    render(); schedulePreview();
+    if(draft) status('Masz niezapisane zmiany z poprzedniej sesji. Kliknij „Zapisz na stronie” albo „Odrzuć zmiany”.');
+  });
+}
+$('gateBtn').addEventListener('click',function(){
+  var p=$('pw').value; if(!p){ $('gateMsg').textContent='Wpisz hasło.'; return; }
+  $('gateMsg').textContent='Sprawdzam…';
+  fetch(API+'auth',{method:'POST',headers:{'x-admin-pass':p}})
+    .then(function(r){
+      if(r.ok){ try{ sessionStorage.setItem(OK,p); }catch(e){} $('gateMsg').textContent=''; openApp(); }
+      else if(r.status===401){ $('gateMsg').textContent='Złe hasło.'; }
+      else { $('gateMsg').textContent='Serwer nie odpowiada poprawnie (błąd '+r.status+'). Sprawdź ustawienia Netlify.'; }
+    })
+    .catch(function(){ $('gateMsg').textContent='Brak połączenia z serwerem.'; });
+});
+$('pw').addEventListener('keydown',function(e){ if(e.key==='Enter') $('gateBtn').click(); });
+if(pass()){ fetch(API+'auth',{method:'POST',headers:{'x-admin-pass':pass()}}).then(function(r){ if(r.ok) openApp(); else { try{ sessionStorage.removeItem(OK); }catch(e){} } }).catch(function(){}); }
+})();
+</script>
+</body>
+</html>
