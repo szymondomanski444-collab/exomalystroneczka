@@ -338,6 +338,9 @@ body{padding-inline:0}
 .prose p{margin:0 0 16px}
 .about-s{display:grid;gap:12px}
 .pgrid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.view[data-view="partnerzy"]{min-height:auto;padding-bottom:40px}
+.pgrid{grid-template-columns:repeat(auto-fill,minmax(200px,240px));justify-content:start}
+@media (max-width:640px){.pgrid{grid-template-columns:1fr 1fr}}
 .pt{display:flex;align-items:center;justify-content:center;min-height:130px;padding:18px;background:var(--navy);border:1px solid var(--line);border-radius:20px;text-decoration:none;color:var(--muted);font-weight:700;text-align:center;transition:transform .35s ease,border-color .35s,color .35s}
 .pt:hover{transform:translateY(-5px);border-color:var(--glow);color:var(--fg)}
 .pt img{max-width:100%;max-height:90px;object-fit:contain}
