@@ -51,7 +51,9 @@ body {
 }
 #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
 body::after { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background: none; }
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 56px); }
 .wrap { max-width: 1120px; margin-inline: auto; position: relative; z-index: 1; }
 a { color: inherit; }
 button, input, select, textarea { font: inherit; color: inherit; }
