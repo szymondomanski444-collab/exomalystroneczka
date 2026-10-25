@@ -279,6 +279,10 @@ body{padding-inline:0}
 .hero2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:40px;align-items:center;padding:20px 0 40px}
 .hero-logo{width:120px;margin-bottom:26px;transform:translate(calc(var(--px,0)*16px),calc(var(--py,0)*16px));transition:transform .45s ease-out;filter:drop-shadow(0 0 22px color-mix(in srgb,var(--glow) 30%,transparent))}
 .hero2 .mark2{font-family:var(--f-display);font-weight:300;font-size:clamp(2.4rem,8vw,5.6rem);letter-spacing:.2em;line-height:1;margin:18px 0 16px}
+.hero2 .mark2{background:linear-gradient(100deg,#fff 0%,var(--ice) 35%,var(--glow) 50%,var(--ice) 65%,#fff 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+.view.on .hero2 .mark2{animation:up .8s cubic-bezier(.2,.8,.2,1) both,markShine 7s ease-in-out 1s infinite}
+@keyframes markShine{0%,100%{background-position:100% 50%}50%{background-position:0% 50%}}
+@media (prefers-reduced-motion:reduce){.view.on .hero2 .mark2{animation:none;color:#fff;background:none}}
 .hero2 .sub2{color:var(--muted);font-size:1.1rem;max-width:44ch;margin:0 0 28px}
 .btns2{display:flex;gap:12px;flex-wrap:wrap}
 .mag{display:inline-block;background:var(--glow);color:#000;border:1px solid var(--glow);border-radius:999px;padding:13px 24px;font-weight:700;font-size:.95rem;cursor:pointer;transition:background .3s,color .3s,border-color .3s;will-change:transform}
