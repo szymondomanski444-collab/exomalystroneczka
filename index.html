@@ -23,6 +23,8 @@
 .trow.mine{background:color-mix(in srgb, var(--glow) 14%, transparent)}
 .trow.mine .tn em{font-style:normal;font-size:.75rem;color:var(--glow);margin-left:6px}
 @media (max-width:600px){.trow{grid-template-columns:30px 1fr 36px 36px 36px 48px;padding:12px 12px;font-size:.85rem}}
+.kcard .ligpos{font-family:var(--f-display);font-size:2rem;font-weight:700;margin:4px 0 14px;color:var(--fg)}
+.kcard.lig{max-width:640px}
 </style>
 <title>Exomaly</title>
 <meta name="description" content="Exomaly – polska drużyna CS2 w Starter League. Skład, mecze, terminarz, osiągnięcia i aktualności.">
@@ -633,27 +635,16 @@ function hasTime(s){ return /[ T]\d{1,2}:\d{2}/.test(String(s)); }
 function fmtDate(s){ var d=parseDT(s); return d?(d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear()):(s||''); }
 var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 function list(k){ return Array.isArray(D[k])?D[k]:[]; }
-function drawTabela(rows){
-  var el=$('tabela');
-  if(!rows.length){ el.innerHTML='<p class="tpusta">Brak wyników.</p>'; return; }
-  var h='<div class="ttab"><div class="trow thead"><span>#</span><span>Drużyna</span><span>M</span><span>W</span><span>P</span><span>Pkt</span></div>';
-  rows.forEach(function(x,i){
-    h+='<div class="trow'+(x.mine?' mine':'')+'"><span>'+(x.rank||i+1)+'</span><span class="tn">'+esc(x.name||'')+(x.mine?' <em>(my)</em>':'')+'</span><span>'+(Number(x.mecze)||0)+'</span><span>'+(Number(x.wygrane)||0)+'</span><span>'+(Number(x.przegrane)||0)+'</span><span><b>'+(Number(x.punkty)||0)+'</b></span></div>';
-  });
-  el.innerHTML=h+'</div>';
-}
 function renderTabela(){
   var el=$('tabela'); if(!el) return;
-  var fromAdmin=function(){
-    var rows=list('tabela').map(function(r){ return {name:r.druzyna,mecze:r.mecze,wygrane:r.wygrane,przegrane:r.przegrane,punkty:r.punkty,mine:String(r.nasza||'').toLowerCase()==='tak'}; })
-      .sort(function(a,b){ return ((Number(b.punkty)||0)-(Number(a.punkty)||0))||((Number(b.wygrane)||0)-(Number(a.wygrane)||0)); });
-    drawTabela(rows);
-  };
-  fetch('/api/standings',{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(j){
-    if(j && j.table && j.table.length){
-      drawTabela(j.table.map(function(x){ return {rank:x.rank,name:x.name,mecze:x.mecze,wygrane:x.wygrane,przegrane:x.przegrane,punkty:x.punkty,mine:/exomaly/i.test(x.name||'')}; }));
-    } else fromAdmin();
-  }).catch(fromAdmin);
+  var L=D.liga||{};
+  var has=(L.dywizja||L.miejsce||L.opis);
+  if(!has){ el.innerHTML='<p class="tpusta">Informacja o pozycji w lidze pojawi się tutaj.</p>'; return; }
+  el.innerHTML='<div class="kcard lig">'+
+    (L.dywizja?'<h3>'+esc(L.dywizja)+'</h3>':'')+
+    (L.miejsce?'<p class="ligpos">'+esc(L.miejsce)+'</p>':'')+
+    (L.opis?'<p>'+esc(L.opis).replace(/\n/g,'<br>')+'</p>':'')+
+    '</div>';
 }
 renderTabela();
 

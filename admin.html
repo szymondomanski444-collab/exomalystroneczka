@@ -130,6 +130,7 @@ function normalize(o){
   o.druzyna=Object.assign({opis:'',ligaLink:''},o.druzyna||{});
   o.onas=Object.assign({naglowek:'O nas',tekst:''},o.onas||{});
   o.social=Object.assign({instagram:'',tiktok:'',discord:''},o.social||{});
+  o.liga=Object.assign({dywizja:'',miejsce:'',opis:''},o.liga||{});
   LISTS.forEach(function(s){ if(!Array.isArray(o[s.k])) o[s.k]=[]; });
   return o;
 }
@@ -185,6 +186,13 @@ function render(){
     '<label class="fld"><span>TikTok: nick lub link</span><input data-path="social.tiktok" value="'+esc(S.social.tiktok)+'"></label>'+
     '<label class="fld"><span>Discord: link zaproszenia</span><input data-path="social.discord" value="'+esc(S.social.discord)+'"></label>'+
     '</div>');
+  h+=section('Gdzie jesteśmy w lidze (zakładka Tabela)',
+    '<p class="hint">Ten opis zastępuje tabelę na stronie. Puste pola są ukrywane.</p>'+
+    '<div class="grid">'+
+    '<label class="fld"><span>Dywizja</span><input data-path="liga.dywizja" value="'+esc(S.liga.dywizja)+'"></label>'+
+    '<label class="fld"><span>Nasze miejsce, np. 3. miejsce</span><input data-path="liga.miejsce" value="'+esc(S.liga.miejsce)+'"></label>'+
+    '</div>'+
+    '<label class="fld wide"><span>Opis (wyniki, ostatni mecz, co dalej)</span><textarea data-path="liga.opis">'+esc(S.liga.opis)+'</textarea></label>');
   LISTS.forEach(function(sec){
     h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button></div>'+listHTML(sec));
   });
