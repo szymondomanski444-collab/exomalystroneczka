@@ -6,8 +6,9 @@ module.exports = async (req, res) => {
   const base = process.env.STARTERLEAGUE_API_BASE || 'https://starterleague.pl/api/partners';
   const division = process.env.STARTERLEAGUE_DIVISION || 'Starter Division 6';
   const headers = { Accept: 'application/json' };
-  const key = process.env.STARTERLEAGUE_API_KEY;
-  if (key) headers[process.env.STARTERLEAGUE_KEY_HEADER || 'Authorization'] = key;
+  const rawKey = process.env.STARTERLEAGUE_API_KEY || '';
+  const key = rawKey.replace(/[^\x21-\x7E]/g, '');
+  if (key) headers[(process.env.STARTERLEAGUE_KEY_HEADER || 'Authorization').replace(/[^\x21-\x7E]/g, '')] = key;
   try {
     const r = await fetch(base + '/standings?division=' + encodeURIComponent(division), { headers });
     if (!r.ok) return res.status(502).json({ error: 'API zwróciło ' + r.status });
@@ -27,6 +28,6 @@ module.exports = async (req, res) => {
       })),
     });
   } catch (e) {
-    return res.status(502).json({ error: 'Nie udało się połączyć z API: ' + e.message });
+    return res.status(502).json({ error: 'Nie udało się połączyć z API: ' + e.message, diagnostyka: { dlugoscKlucza: rawKey.length, znakiSpozaASCII: rawKey.length !== key.length } });
   }
 };
