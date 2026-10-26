@@ -33,6 +33,12 @@ body[data-motyw="halloween"] .hw-h,body[data-motyw="swieta"] .hw-s{display:block
 @keyframes xTwinkle{0%,100%{opacity:.35}50%{opacity:.8}}
 @media (prefers-reduced-motion:reduce){.hw-h .spider,.hw-h .bat,.hw-s .flake,.hw-s .star{animation:none}}
 @media (max-width:640px){.hw-h .spider,.hw-h .bat{display:none}.sez .web{width:70px;height:70px}.hw-s .flake:nth-child(n+7){display:none}.hw-s .tree{width:60px}}
+/* Tryb dostępności */
+.a11ybtn{background:transparent;border:1px solid var(--line);color:inherit;border-radius:999px;padding:6px 12px;font:inherit;font-size:.82rem;cursor:pointer}
+.a11ybtn:hover,.a11ybtn[aria-pressed="true"]{border-color:#fff}
+html.a11y{font-size:19px}
+html.a11y *,html.a11y *::before,html.a11y *::after{animation:none!important;transition:none!important}
+html.a11y .sez,html.a11y #rail{display:none!important}
 </style>
 <title>Exomaly</title>
 <meta name="description" content="Exomaly – polska drużyna CS2 w Starter League. Skład, mecze, terminarz, osiągnięcia i aktualności.">
@@ -601,6 +607,7 @@ body{padding-inline:0}
   <span class="brand2"><span class="logo" aria-hidden="true" style="width:28px"><svg class="p0" viewBox="0 0 84 70" aria-hidden="true"><path fill="#fff" d="M78.88 4.81 L77.56 5.00 L74.50 6.81 L65.00 11.19 L24.62 11.38 L9.00 29.12 L8.88 29.81 L9.81 30.00 L11.94 28.94 L14.50 28.88 L24.25 40.06 L24.88 40.06 L27.06 37.81 L27.94 36.31 L27.88 22.75 L28.31 21.88 L57.00 21.56 L78.31 5.88Z"/></svg><svg class="p1" viewBox="0 0 84 70" aria-hidden="true"><path fill="#fff" d="M64.94 28.38 L64.56 28.12 L44.69 28.12 L43.44 28.44 L6.69 63.94 L5.38 65.69 L5.94 65.75 L19.50 56.88 L42.38 39.12 L43.75 38.56 L53.44 38.38 L64.38 29.75 L65.00 28.81Z"/></svg><svg class="p2" viewBox="0 0 84 70" aria-hidden="true"><path fill="#fff" d="M23.12 60.25 L23.19 60.69 L23.81 61.00 L66.56 61.00 L72.75 62.06 L76.44 63.25 L77.19 63.00 L76.94 62.19 L65.62 51.12 L64.19 50.44 L34.81 50.44 L33.50 51.06Z"/></svg></span><span class="n">EXOMALY</span></span>
   <span>© Exomaly · sajkowy</span>
   <a id="liga-link" href="https://starterleague.pl" target="_blank" rel="noopener">Starter League</a>
+  <button type="button" id="a11yBtn" class="a11ybtn" aria-pressed="false">Tryb dostępności</button>
 </footer>
 
 <nav class="rail" id="rail" aria-label="Social media">
@@ -996,6 +1003,15 @@ function loadData(){
 }
 loadData().then(boot);
 
+</script>
+<script>
+(function(){
+  var b=document.getElementById('a11yBtn'); if(!b) return;
+  function apply(on){ document.documentElement.classList.toggle('a11y',on); b.setAttribute('aria-pressed',on?'true':'false'); }
+  var on=false; try{ on=localStorage.getItem('exo_a11y')==='1'; }catch(e){}
+  apply(on);
+  b.addEventListener('click',function(){ on=!on; apply(on); try{ localStorage.setItem('exo_a11y',on?'1':'0'); }catch(e){} });
+})();
 </script>
 </body>
 </html>
