@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]{display:none!important}
+/* Kontakt */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.kcard{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:26px}
+.kcard h3{margin:0 0 10px;font-family:var(--f-display);font-size:1.05rem;letter-spacing:.08em;text-transform:uppercase}
+.kcard p{color:var(--muted);margin:0 0 14px;line-height:1.6}
+.kmail{display:inline-block;color:var(--fg);font-weight:700;text-decoration:none;border-bottom:1px solid var(--glow);padding-bottom:2px}
+.kmut{font-size:.85rem}
 </style>
 <title>Exomaly</title>
 <meta name="description" content="Exomaly – polska drużyna CS2 w Starter League. Skład, mecze, terminarz, osiągnięcia i aktualności.">
@@ -436,6 +443,7 @@ body{padding-inline:0}
     <button type="button" role="tab" data-go="osiagniecia">Osiągnięcia</button>
     <button type="button" role="tab" data-go="partnerzy">Partnerzy</button>
     <button type="button" role="tab" data-go="aktualnosci">Aktualności</button>
+    <button type="button" role="tab" data-go="kontakt">Kontakt</button>
     <button type="button" role="tab" data-go="prywatnosc">Prywatność</button>
   </div>
 </nav>
@@ -504,6 +512,23 @@ body{padding-inline:0}
   <section class="view" data-view="osiagniecia">
     <div class="head2 a" style="--i:0"><div><p class="eyebrow">Historia</p><h2 class="sec">Osiągnięcia</h2></div></div>
     <div class="tl" id="timeline"></div>
+  </section>
+
+  <section class="view" data-view="kontakt">
+    <div class="head2 a" style="--i:0"><div><p class="eyebrow">Porozmawiajmy</p><h2 class="sec">Kontakt i sponsorzy</h2></div></div>
+    <div class="kgrid">
+      <div class="kcard a" style="--i:1">
+        <h3>Kontakt</h3>
+        <p>Pytania, media i sprawy organizacyjne:</p>
+        <a class="kmail" href="mailto:team@exomaly.pl">team@exomaly.pl</a>
+        <p class="kmut">Linki do social mediów są na pasku po lewej stronie.</p>
+      </div>
+      <div class="kcard a" style="--i:2">
+        <h3>Sponsorzy i współpraca</h3>
+        <p>Chcesz wesprzeć drużynę? Napisz z propozycją. Logo, widoczność na stronie i w mediach społecznościowych ustalimy indywidualnie.</p>
+        <a class="kmail" href="mailto:team@exomaly.pl?subject=Wsp%C3%B3%C5%82praca">Napisz o współpracy</a>
+      </div>
+    </div>
   </section>
 
   <section class="view" data-view="prywatnosc">
@@ -762,7 +787,7 @@ function renderTimeline(){
 }
 
 /* ---------- zakładki ---------- */
-var VIEWS=['home','sklad','mecze','onas','osiagniecia','partnerzy','aktualnosci','prywatnosc'];
+var VIEWS=['home','sklad','mecze','onas','osiagniecia','partnerzy','aktualnosci','kontakt','prywatnosc'];
 function go(name,push){
   if(VIEWS.indexOf(name)<0) name='home';
   document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('on',v.getAttribute('data-view')===name); });
