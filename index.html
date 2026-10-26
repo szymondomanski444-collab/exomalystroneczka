@@ -741,26 +741,41 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
 
 /* ---------- najbliższy mecz z odliczaniem ---------- */
 (function(){
-  var box=$('next'), n=UP[0];
+  var box=$('next');
   box.setAttribute('data-open','next');
-  if(!n){
-    box.innerHTML='<h2>Najbliższy mecz</h2><div class="vs"><div class="t">EXOMALY</div><div class="x">VS</div><div class="t unk">?</div></div><div class="nomatch"><b>Termin nieznany</b><span>Kolejny mecz pojawi się tutaj, gdy tylko ustalimy datę.</span></div>';
-    return;
+  var timer=null;
+  function pickNext(){
+    var now=new Date();
+    for(var i=0;i<UP.length;i++){ if(UP[i].dt && UP[i].dt>now) return UP[i]; }
+    return null;
   }
-  var dt=n.dt, m=n.m;
-  box.innerHTML='<h2>Najbliższy mecz</h2><div class="vs"><div class="t">EXOMALY</div><div class="x">VS</div><div class="t">'+esc(m.przeciwnik||'?')+'</div></div>'+
+  function start(n){
+    if(timer) clearInterval(timer);
+    if(!n){ box.innerHTML='<h2>Najbliższy mecz</h2><div class="vs"><div class="t">EXOMALY</div><div class="x">VS</div><div class="t unk">?</div></div><div class="nomatch"><b>Termin nieznany</b><span>Kolejny mecz pojawi się tutaj, gdy tylko ustalimy datę.</span></div>';
+      return; }
+    var dt=n.dt, m=n.m;
+    box.innerHTML='<h2>Najbliższy mecz</h2><div class="vs"><div class="t">EXOMALY</div><div class="x">VS</div><div class="t">'+esc(m.przeciwnik||'?')+'</div></div>'+
     '<div class="cd"><div><b id="cd-d">0</b><small>dni</small></div><div><b id="cd-h">00</b><small>godz.</small></div><div><b id="cd-m">00</b><small>min</small></div><div><b id="cd-s">00</b><small>sek</small></div></div>'+
     '<div class="meta"><span>'+DAY[dt.getDay()]+' '+dt.getDate()+' '+MON[dt.getMonth()]+(hasTime(m.data)?', '+pad(dt.getHours())+':'+pad(dt.getMinutes()):'')+'</span><span>'+esc(m.mapa||'mapa do ustalenia')+'</span></div>';
-  function tick(){
-    var ms=dt-new Date();
-    if(ms<=0){ var cd=box.querySelector('.cd'); if(cd) cd.outerHTML='<div class="nomatch"><b>Mecz trwa</b><span>Trzymaj kciuki za Exomaly.</span></div>'; clearInterval(timer); return; }
-    var s=Math.floor(ms/1000);
-    $('cd-d').textContent=Math.floor(s/86400);
-    $('cd-h').textContent=pad(Math.floor(s%86400/3600));
-    $('cd-m').textContent=pad(Math.floor(s%3600/60));
-    $('cd-s').textContent=pad(s%60);
+    function tick(){
+      var now=new Date(), ms=dt-now;
+      if(ms<=0){
+        if(now-dt<3600000){
+          var cd=box.querySelector('.cd');
+          if(cd) cd.outerHTML='<div class="nomatch"><b>Mecz trwa</b><span>Trzymaj kciuki za Exomaly.</span></div>';
+          return;
+        }
+        clearInterval(timer); start(pickNext()); return;
+      }
+      var s=Math.floor(ms/1000);
+      $('cd-d').textContent=Math.floor(s/86400);
+      $('cd-h').textContent=pad(Math.floor(s%86400/3600));
+      $('cd-m').textContent=pad(Math.floor(s%3600/60));
+      $('cd-s').textContent=pad(s%60);
+    }
+    timer=setInterval(tick,1000); tick();
   }
-  var timer=setInterval(tick,1000); tick();
+  start(UP[0]);
 })();
 
 /* ---------- liczniki ---------- */
