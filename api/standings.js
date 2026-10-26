@@ -21,6 +21,7 @@ module.exports = async (req, res) => {
     const table = (d && Array.isArray(d.tablo)) ? d.tablo : [];
     return res.status(200).json({
       division,
+      dostepneDywizje: (j.divisions || []).map((x) => x.division),
       table: table.map((x) => ({
         rank: x.rank,
         name: x.team && x.team.name,
