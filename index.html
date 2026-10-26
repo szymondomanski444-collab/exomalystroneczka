@@ -635,7 +635,7 @@ var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce
 function list(k){ return Array.isArray(D[k])?D[k]:[]; }
 function drawTabela(rows){
   var el=$('tabela');
-  if(!rows.length){ el.innerHTML='<p class="tpusta">Tabela pojawi się tutaj po uzupełnieniu w panelu admina.</p>'; return; }
+  if(!rows.length){ el.innerHTML='<p class="tpusta">Brak wyników.</p>'; return; }
   var h='<div class="ttab"><div class="trow thead"><span>#</span><span>Drużyna</span><span>M</span><span>W</span><span>P</span><span>Pkt</span></div>';
   rows.forEach(function(x,i){
     h+='<div class="trow'+(x.mine?' mine':'')+'"><span>'+(x.rank||i+1)+'</span><span class="tn">'+esc(x.name||'')+(x.mine?' <em>(my)</em>':'')+'</span><span>'+(Number(x.mecze)||0)+'</span><span>'+(Number(x.wygrane)||0)+'</span><span>'+(Number(x.przegrane)||0)+'</span><span><b>'+(Number(x.punkty)||0)+'</b></span></div>';
