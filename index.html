@@ -66,6 +66,11 @@ html.a11y .sez,html.a11y #rail{display:none!important}
 .pn{display:block;font-weight:700;line-height:1.2}
 .pr{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
 .tile[data-go]{cursor:pointer}
+.tile[data-go]{position:relative;cursor:pointer}
+.tile[data-go]::after{content:"→";position:absolute;right:18px;bottom:14px;font-size:1.15rem;color:var(--muted);opacity:0;transform:translateX(-6px);transition:opacity .25s,transform .25s}
+.tile[data-go]:hover{border-color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.25),0 14px 44px rgba(255,255,255,.10);transform:translateY(-4px)}
+.tile[data-go]:hover::after,.tile[data-go]:focus-visible::after{opacity:1;transform:translateX(0);color:#fff}
+.tile[data-go]:focus-visible{outline:2px solid #fff;outline-offset:3px}
 </style>
 <title>Exomaly – drużyna CS2 w Starter League</title>
 <link rel="canonical" href="https://exomaly.pl/">
