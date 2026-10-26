@@ -65,6 +65,7 @@ html.a11y .sez,html.a11y #rail{display:none!important}
 .av img{width:100%;height:100%;object-fit:cover}
 .pn{display:block;font-weight:700;line-height:1.2}
 .pr{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.tile[data-go]{cursor:pointer}
 </style>
 <title>Exomaly – drużyna CS2 w Starter League</title>
 <link rel="canonical" href="https://exomaly.pl/">
@@ -706,11 +707,16 @@ function renderTiles(){
     }).join('');
   };
   el.innerHTML=
-    '<div class="tile"><p class="eyebrow">Ostatni wynik</p>'+
+    '<div class="tile" data-go="mecze"><p class="eyebrow">Ostatni wynik</p>'+
       (last?'<div class="tbig">'+(Number(last.my)||0)+' : '+(Number(last.oni)||0)+'</div><p class="tsub">vs '+esc(last.przeciwnik||'')+(last.data?' · '+esc(last.data):'')+'</p>':'<p class="tsub">Brak wyników</p>')+
     '</div>'+
-    '<div class="tile"><p class="eyebrow">Główny skład</p>'+rows(MAIN)+'</div>'+
-    '<div class="tile"><p class="eyebrow">Akademia</p>'+rows(ACAD)+'</div>';
+    '<div class="tile" data-go="sklad" data-sq="main"><p class="eyebrow">Główny skład</p>'+rows(MAIN)+'</div>'+
+    '<div class="tile" data-go="sklad" data-sq="acad"><p class="eyebrow">Akademia</p>'+rows(ACAD)+'</div>';
+  el.addEventListener('click',function(e){
+    var t=e.target.closest('[data-sq]'); if(!t) return;
+    var sq=t.getAttribute('data-sq');
+    setTimeout(function(){ var b=document.querySelector('#squadSeg [data-sq="'+sq+'"]'); if(b) b.click(); },0);
+  });
 }
 renderTiles();
 var PARTS=list('partnery').filter(function(p){ return p&&p.nazwa; });
