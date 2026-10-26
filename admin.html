@@ -129,6 +129,7 @@ function normalize(o){
   o.druzyna=Object.assign({opis:'',ligaLink:''},o.druzyna||{});
   o.onas=Object.assign({naglowek:'O nas',tekst:''},o.onas||{});
   o.social=Object.assign({instagram:'',tiktok:'',discord:''},o.social||{});
+  o.ustawienia=Object.assign({motyw:'domyslny'},o.ustawienia||{});
   LISTS.forEach(function(s){ if(!Array.isArray(o[s.k])) o[s.k]=[]; });
   return o;
 }
@@ -184,6 +185,11 @@ function render(){
     '<label class="fld"><span>TikTok: nick lub link</span><input data-path="social.tiktok" value="'+esc(S.social.tiktok)+'"></label>'+
     '<label class="fld"><span>Discord: link zaproszenia</span><input data-path="social.discord" value="'+esc(S.social.discord)+'"></label>'+
     '</div>');
+  h+=section('Motyw strony',
+    '<p class="hint">Dekoracje sezonowe pojawiają się na stronie od razu po zapisie.</p>'+
+    '<label class="fld"><span>Motyw</span><select data-path="ustawienia.motyw">'+
+    [['domyslny','Domyślny (bez dekoracji)'],['halloween','Halloween'],['swieta','Święta']].map(function(o){ return '<option value="'+o[0]+'"'+(S.ustawienia.motyw===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')+
+    '</select></label>');
   LISTS.forEach(function(sec){
     h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button></div>'+listHTML(sec));
   });
