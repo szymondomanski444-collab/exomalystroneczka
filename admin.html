@@ -198,6 +198,11 @@ var base=null, S=null;
 var openSet={};
 function saveDraft(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} schedulePreview(); }
 function clearDraft(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+function parseTerm(s){
+  var m=/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?/.exec(String(s||''));
+  if(!m) return null;
+  return new Date(+m[1],+m[2]-1,+m[3],+(m[4]||0),+(m[5]||0));
+}
 function status(msg,kind){ var s=$('st'); s.textContent=msg; s.className=kind||''; }
 function spec(k){ return LISTS.filter(function(s){ return s.k===k; })[0]; }
 
@@ -252,7 +257,8 @@ function render(){
     [['domyslny','Domyślny (bez dekoracji)'],['halloween','Halloween'],['swieta','Święta']].map(function(o){ return '<option value="'+o[0]+'"'+(S.ustawienia.motyw===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')+
     '</select></label>');
   LISTS.forEach(function(sec){
-    h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button></div>'+listHTML(sec));
+    var extra=sec.k==='terminarz'?'<button type="button" class="danger" data-act="endnow">Usuń trwający mecz</button>':'';
+    h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button> '+extra+'</div>'+listHTML(sec));
   });
   $('editor').innerHTML=h;
   buildTabs();
@@ -300,6 +306,16 @@ $('editor').addEventListener('click',function(e){
   if(act==='add'){ S[k].push(clone(spec(k).nf)); }
   else if(act==='del'){ if(!confirm('Usunąć ten wpis?')) return; S[k].splice(i,1); }
   else if(act==='up'||act==='down'){ var j=act==='up'?i-1:i+1; var tmp=S[k][i]; S[k][i]=S[k][j]; S[k][j]=tmp; }
+  else if(act==='endnow'){
+    var now=new Date(), idx=-1, best=null;
+    S.terminarz.forEach(function(x,j){
+      var d=parseTerm(x.data);
+      if(d && d<=now && now-d<6*3600000 && (best===null || d>best)){ idx=j; best=d; }
+    });
+    if(idx<0){ status('Nie ma trwającego meczu w terminarzu (rozpoczętego w ciągu ostatnich 6 godzin).','err'); return; }
+    if(!confirm('Usunąć z terminarza: '+(S.terminarz[idx].przeciwnik||'mecz')+'?')) return;
+    S.terminarz.splice(idx,1);
+  }
   else return;
   saveDraft(); render(); status('Zmiany są w szkicu. Kliknij „Zapisz na stronie”, żeby były widoczne.');
 });
