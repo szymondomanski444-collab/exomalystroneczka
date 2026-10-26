@@ -57,6 +57,48 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ice)}
 #gate p{color:var(--mut);margin:0;font-size:.9rem}
 #gateMsg{color:var(--red);font-size:.85rem;min-height:1em}
 [hidden]{display:none!important}
+/* ===== Odświeżony wygląd panelu ===== */
+:root{--line2:#3a3a3a;--hover:#181818;--ring:rgba(255,255,255,.12)}
+body{background:radial-gradient(70% 40% at 50% -10%,rgba(255,255,255,.05),transparent 70%),#000}
+.bar{background:rgba(6,6,6,.9);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.bar h1{display:flex;align-items:center;gap:10px}
+.bar h1::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--fg);box-shadow:0 0 12px rgba(255,255,255,.7)}
+.bar .acts button{padding:9px 14px;border-radius:12px}
+.bar .acts button.primary{box-shadow:0 0 0 0 rgba(255,255,255,.4)}
+.bar .acts button.primary:hover:not(:disabled){box-shadow:0 0 18px rgba(255,255,255,.35)}
+button:hover:not(:disabled){background:var(--hover)}
+button.primary:hover:not(:disabled){background:#e5e5e5}
+.note{background:var(--bg2);border:1px solid var(--line);border-style:solid;border-left:3px solid var(--fg);color:var(--ice);border-radius:12px}
+#st{font-weight:600}
+.pvbar{border-radius:16px;background:rgba(18,18,18,.9);backdrop-filter:blur(6px)}
+#pv{border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.6);border-color:var(--line2)}
+details.sec{border-radius:18px;background:linear-gradient(180deg,#101010,#0a0a0a);transition:border-color .2s}
+details.sec[open]{border-color:var(--line2)}
+details.sec>summary{padding:18px 20px;transition:background .2s}
+details.sec>summary:hover{background:var(--hover)}
+.sec-b{padding:6px 20px 22px;border-top:1px solid var(--line)}
+.fld{color:var(--ice);font-size:.82rem}
+.fld>span{font-weight:600;letter-spacing:.02em}
+input,textarea,select{padding:11px 13px;border-color:#2a2a2a;background:#0f0f0f;transition:border-color .2s,box-shadow .2s}
+input:hover,textarea:hover,select:hover{border-color:#444}
+input:focus,textarea:focus,select:focus{border-color:#fff;box-shadow:0 0 0 3px var(--ring)}
+input[type=checkbox]{width:auto;accent-color:#fff}
+.item{background:#0f0f0f;border-color:#262626;border-radius:16px;transition:border-color .2s}
+.item:hover{border-color:#444}
+.item-h b{color:var(--ice);letter-spacing:.06em}
+.hint{font-size:.85rem}
+#gate{background:radial-gradient(60% 50% at 50% 40%,rgba(255,255,255,.06),transparent 70%),#000}
+#gate .box{border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.7);padding:30px}
+#gate h1{font-size:1.2rem;text-align:center}
+#gate .box>p{text-align:center}
+#gate .box button{padding:12px}
+@media (max-width:700px){
+  .bar .wrap{padding-block:10px}
+  .bar .acts{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+  .bar .acts button,.bar .acts .filebtn{white-space:nowrap;padding:8px 12px;font-size:.82rem}
+  .grid{grid-template-columns:1fr}
+  .wrap{padding:0 12px}
+}
 </style>
 </head>
 <body>
@@ -94,7 +136,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ice)}
           <label><input type="checkbox" id="live" checked style="width:auto"> Podgląd na żywo</label>
           <select id="pvView">
             <option value="home">Start</option><option value="sklad">Skład</option><option value="mecze">Mecze</option>
-            <option value="onas">O nas</option><option value="partnerzy">Partnerzy</option><option value="aktualnosci">Aktualności</option>
+            <option value="onas">O nas</option><option value="partnerzy">Partnerzy</option><option value="aktualnosci">Aktualności</option><option value="kontakt">Kontakt</option><option value="prywatnosc">Prywatność</option>
           </select>
         </div>
         <div id="editor"></div>
