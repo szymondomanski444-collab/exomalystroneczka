@@ -91,6 +91,7 @@ window.DANE = {
       "mapa": "N/A"
     }
   ],
+  "tabela": [],
   "wyniki": [
     {
       "data": "16 paź 2026",
