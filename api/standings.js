@@ -8,7 +8,11 @@ module.exports = async (req, res) => {
   const headers = { Accept: 'application/json' };
   const rawKey = process.env.STARTERLEAGUE_API_KEY || '';
   const key = rawKey.replace(/[^\x21-\x7E]/g, '');
-  if (key) headers[(process.env.STARTERLEAGUE_KEY_HEADER || 'Authorization').replace(/[^\x21-\x7E]/g, '')] = key;
+  if (key) {
+    const hName = (process.env.STARTERLEAGUE_KEY_HEADER || 'Authorization').replace(/[^\x21-\x7E]/g, '');
+    const isAuth = hName.toLowerCase() === 'authorization';
+    headers[hName] = isAuth && !/^Bearer /i.test(key) ? 'Bearer ' + key : key;
+  }
   try {
     const r = await fetch(base + '/standings?division=' + encodeURIComponent(division), { headers });
     if (!r.ok) return res.status(502).json({ error: 'API zwróciło ' + r.status });
