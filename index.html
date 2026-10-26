@@ -47,6 +47,16 @@ html.a11y .sez,html.a11y #rail{display:none!important}
 .hero2 .btns2 .mag:hover{box-shadow:0 0 30px rgba(255,255,255,.35);transform:translateY(-2px)}
 .hero-logo .logo{filter:drop-shadow(0 0 40px rgba(255,255,255,.25))}
 @keyframes ringSpin{to{transform:rotate(360deg)}}
+/* Wariant 2: kafelki pod bohaterem */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0 8px}
+.tile{background:linear-gradient(180deg,#121212,#0a0a0a);border:1px solid var(--line);border-radius:20px;padding:22px 22px 20px;transition:border-color .25s,transform .25s}
+.tile:hover{border-color:#3a3a3a;transform:translateY(-3px)}
+.tile .eyebrow{margin:0 0 10px}
+.tbig{font-family:var(--f-display);font-size:2.6rem;font-weight:700;line-height:1;margin:4px 0 10px;letter-spacing:.02em}
+.tsub{color:var(--muted);margin:0;font-size:.92rem}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chipn{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.86rem;background:#0f0f0f}
+@media (max-width:820px){.tiles{grid-template-columns:1fr}}
 </style>
 <title>Exomaly – drużyna CS2 w Starter League</title>
 <link rel="canonical" href="https://exomaly.pl/">
@@ -506,7 +516,8 @@ body{padding-inline:0}
       </div>
       <aside class="next a" style="--i:3" id="next" aria-label="Najbliższy mecz"></aside>
     </div>
-    <div class="stats a" style="--i:5" id="stats"></div>
+    <div class="tiles a" style="--i:5" id="tiles"></div>
+    <div class="stats a" style="--i:6" id="stats"></div>
     <div class="head2 a" style="--i:6">
       <div><p class="eyebrow">Najnowsze</p><h2 class="sec">Aktualności</h2></div>
       <button type="button" class="mag ghost" data-go="aktualnosci">Wszystkie</button>
@@ -675,6 +686,18 @@ function outcome(m){ return +m.my>+m.oni?'w':+m.my<+m.oni?'l':'d'; }
 var nW=RES.filter(function(x){ return outcome(x.m)==='w'; }).length;
 var nL=RES.filter(function(x){ return outcome(x.m)==='l'; }).length;
 var MAIN=list('skladGlowny'), ACAD=list('akademia');
+function renderTiles(){
+  var el=$('tiles'); if(!el) return;
+  var last=RES[0] && RES[0].m;
+  var chips=function(arr){ return arr.map(function(x){ return '<span class="chipn">'+esc(x.nick||'')+'</span>'; }).join('') || '<span class="tsub">Brak zawodników</span>'; };
+  el.innerHTML=
+    '<div class="tile"><p class="eyebrow">Ostatni wynik</p>'+
+      (last?'<div class="tbig">'+(Number(last.my)||0)+' : '+(Number(last.oni)||0)+'</div><p class="tsub">vs '+esc(last.przeciwnik||'')+(last.data?' · '+esc(last.data):'')+'</p>':'<p class="tsub">Brak wyników</p>')+
+    '</div>'+
+    '<div class="tile"><p class="eyebrow">Główny skład</p><div class="chips">'+chips(MAIN)+'</div></div>'+
+    '<div class="tile"><p class="eyebrow">Akademia</p><div class="chips">'+chips(ACAD)+'</div></div>';
+}
+renderTiles();
 var PARTS=list('partnery').filter(function(p){ return p&&p.nazwa; });
 var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }).sort(function(a,b){ return String(b.data||'').localeCompare(String(a.data||'')); });
 
