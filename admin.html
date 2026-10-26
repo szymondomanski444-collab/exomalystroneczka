@@ -218,7 +218,8 @@ function schedulePreview(){
 function field(k,i,f,val){
   var v=val==null?'':val;
   var attrs=' data-k="'+k+'" data-i="'+i+'" data-f="'+f.n+'"';
-  var input=f.area?'<textarea'+attrs+'>'+esc(v)+'</textarea>':'<input'+(f.num?' type="number" min="0" step="1"':'')+attrs+' value="'+esc(v)+'">';
+  var isDate=(k==='terminarz' && f.n==='data');
+  var input=f.area?'<textarea'+attrs+'>'+esc(v)+'</textarea>':isDate?'<input type="datetime-local"'+attrs+' value="'+esc(String(v).replace(' ','T'))+'">':'<input'+(f.num?' type="number" min="0" step="1"':'')+attrs+' value="'+esc(v)+'">';
   return '<label class="fld'+(f.area?' wide':'')+'"><span>'+esc(f.l)+'</span>'+input+'</label>';
 }
 function listHTML(sec){
@@ -295,7 +296,7 @@ $('editor').addEventListener('input',function(e){
   } else if(t.hasAttribute('data-f')){
     var k=t.getAttribute('data-k'), i=+t.getAttribute('data-i'), f=t.getAttribute('data-f');
     var def=spec(k).f.filter(function(x){ return x.n===f; })[0];
-    S[k][i][f]=def&&def.num?(parseFloat(t.value)||0):t.value;
+    S[k][i][f]=def&&def.num?(parseFloat(t.value)||0):(t.type==='datetime-local'?t.value.replace('T',' '):t.value);
   } else return;
   saveDraft(); status('Zmiany są w szkicu. Kliknij „Zapisz na stronie”, żeby były widoczne.');
 });
