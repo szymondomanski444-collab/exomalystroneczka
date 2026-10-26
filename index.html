@@ -57,6 +57,13 @@ html.a11y .sez,html.a11y #rail{display:none!important}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chipn{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.86rem;background:#0f0f0f}
 @media (max-width:820px){.tiles{grid-template-columns:1fr}}
+/* Skład na kafelkach */
+.prow{display:flex;align-items:center;gap:12px;padding:7px 0;border-top:1px solid #1c1c1c}
+.prow:first-of-type{border-top:0}
+.av{flex:none;width:38px;height:38px;border-radius:50%;background:#161616;border:1px solid var(--line);display:grid;place-items:center;font-family:var(--f-display);font-size:.72rem;letter-spacing:.04em;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.pn{display:block;font-weight:700;line-height:1.2}
+.pr{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
 </style>
 <title>Exomaly – drużyna CS2 w Starter League</title>
 <link rel="canonical" href="https://exomaly.pl/">
@@ -689,13 +696,20 @@ var MAIN=list('skladGlowny'), ACAD=list('akademia');
 function renderTiles(){
   var el=$('tiles'); if(!el) return;
   var last=RES[0] && RES[0].m;
-  var chips=function(arr){ return arr.map(function(x){ return '<span class="chipn">'+esc(x.nick||'')+'</span>'; }).join('') || '<span class="tsub">Brak zawodników</span>'; };
+  var rows=function(arr){
+    if(!arr.length) return '<p class="tsub">Brak zawodników</p>';
+    return arr.map(function(x){
+      var ini=esc((x.nick||'?').slice(0,2).toUpperCase());
+      var av=x.zdjecie?'<img src="'+esc(x.zdjecie)+'" alt="">':ini;
+      return '<div class="prow"><span class="av">'+av+'</span><span><span class="pn">'+esc(x.nick||'')+'</span><span class="pr">'+esc(x.rola||'')+'</span></span></div>';
+    }).join('');
+  };
   el.innerHTML=
     '<div class="tile"><p class="eyebrow">Ostatni wynik</p>'+
       (last?'<div class="tbig">'+(Number(last.my)||0)+' : '+(Number(last.oni)||0)+'</div><p class="tsub">vs '+esc(last.przeciwnik||'')+(last.data?' · '+esc(last.data):'')+'</p>':'<p class="tsub">Brak wyników</p>')+
     '</div>'+
-    '<div class="tile"><p class="eyebrow">Główny skład</p><div class="chips">'+chips(MAIN)+'</div></div>'+
-    '<div class="tile"><p class="eyebrow">Akademia</p><div class="chips">'+chips(ACAD)+'</div></div>';
+    '<div class="tile"><p class="eyebrow">Główny skład</p>'+rows(MAIN)+'</div>'+
+    '<div class="tile"><p class="eyebrow">Akademia</p>'+rows(ACAD)+'</div>';
 }
 renderTiles();
 var PARTS=list('partnery').filter(function(p){ return p&&p.nazwa; });
