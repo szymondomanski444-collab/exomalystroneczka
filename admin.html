@@ -99,6 +99,19 @@ input[type=checkbox]{width:auto;accent-color:#fff}
   .grid{grid-template-columns:1fr}
   .wrap{padding:0 12px}
 }
+/* Układ: zakładki sekcji + panel podglądu */
+.split{display:block}
+.stabs{display:flex;gap:6px;overflow-x:auto;padding:14px 0 16px;scrollbar-width:thin;position:sticky;top:64px;z-index:3;background:#000}
+.stabs button{white-space:nowrap;border-radius:999px;padding:8px 15px;font-size:.84rem;background:#0f0f0f}
+.stabs button[aria-selected="true"]{background:#fff;color:#000;border-color:#fff}
+details.sec{margin-top:0}
+#pvwrap{position:fixed;top:65px;right:0;bottom:0;width:min(560px,52vw);background:#0a0a0a;border-left:1px solid var(--line);z-index:30;display:flex;flex-direction:column;box-shadow:-24px 0 70px rgba(0,0,0,.7)}
+#pvwrap[hidden]{display:none}
+#pvwrap .pvhead{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
+#pvwrap .pvbar{flex:1;margin:0;position:static;background:none;border:0;padding:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#pvwrap .pvbar select{width:auto}
+#pv{flex:1;width:100%;height:auto;min-height:0;border:0;border-radius:0;position:static;box-shadow:none;background:#000}
+@media (max-width:700px){#pvwrap{width:100%}.stabs{top:58px}}
 </style>
 </head>
 <body>
@@ -132,18 +145,24 @@ input[type=checkbox]{width:auto;accent-color:#fff}
     <div id="st"></div>
     <div class="split">
       <div>
-        <div class="pvbar">
+        <nav class="stabs" id="stabs" role="tablist" aria-label="Sekcje"></nav>
+        <div id="editor"></div>
+      </div>
+    </div>
+  </main>
+<aside id="pvwrap" hidden>
+  <div class="pvhead">
+    <div class="pvbar">
           <label><input type="checkbox" id="live" checked style="width:auto"> Podgląd na żywo</label>
           <select id="pvView">
             <option value="home">Start</option><option value="sklad">Skład</option><option value="mecze">Mecze</option>
             <option value="onas">O nas</option><option value="partnerzy">Partnerzy</option><option value="aktualnosci">Aktualności</option><option value="kontakt">Kontakt</option><option value="prywatnosc">Prywatność</option>
           </select>
         </div>
-        <div id="editor"></div>
-      </div>
-      <iframe id="pv" title="Podgląd strony"></iframe>
-    </div>
-  </main>
+    <button type="button" id="pvx">Zamknij</button>
+  </div>
+  <iframe id="pv" title="Podgląd strony"></iframe>
+</aside>
 </div>
 
 <script src="content.js"></script>
@@ -236,6 +255,25 @@ function render(){
     h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button></div>'+listHTML(sec));
   });
   $('editor').innerHTML=h;
+  buildTabs();
+}
+var activeTab=0;
+function showTab(){
+  var all=[].slice.call($('editor').querySelectorAll('details.sec'));
+  if(activeTab>=all.length) activeTab=0;
+  all.forEach(function(d,i){ d.hidden=(i!==activeTab); if(i===activeTab && !d.open) d.open=true; });
+  [].slice.call($('stabs').children).forEach(function(b,i){ b.setAttribute('aria-selected', i===activeTab?'true':'false'); });
+}
+function buildTabs(){
+  var all=[].slice.call($('editor').querySelectorAll('details.sec'));
+  var nav=$('stabs'); nav.innerHTML='';
+  all.forEach(function(d,i){
+    var b=document.createElement('button'); b.type='button'; b.setAttribute('role','tab');
+    b.textContent=d.querySelector('summary').textContent;
+    b.addEventListener('click',function(){ activeTab=i; showTab(); });
+    nav.appendChild(b);
+  });
+  showTab();
 }
 $('editor').addEventListener('toggle',function(e){
   var t=e.target; if(t.tagName==='DETAILS') openSet[t.getAttribute('data-key')]=t.open;
@@ -286,7 +324,8 @@ $('save').addEventListener('click',function(){
     .then(function(){ btn.disabled=false; });
 });
 
-$('prev').addEventListener('click',function(){ saveDraft(); window.open('index.html?podglad=1','_blank'); });
+$('prev').addEventListener('click',function(){ saveDraft(); var w=$('pvwrap'); w.hidden=!w.hidden; if(!w.hidden) schedulePreview(); });
+$('pvx').addEventListener('click',function(){ $('pvwrap').hidden=true; });
 $('live').addEventListener('change',schedulePreview);
 $('pvView').addEventListener('change',schedulePreview);
 $('dl').addEventListener('click',function(){
