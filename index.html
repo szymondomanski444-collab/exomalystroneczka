@@ -12,19 +12,6 @@
 .kmail{display:inline-block;color:var(--fg);font-weight:700;text-decoration:none;border-bottom:1px solid var(--glow);padding-bottom:2px}
 .kmut{font-size:.85rem}
 .klist{margin:0 0 16px;padding:0;list-style:none;display:grid;gap:8px}.klist li{color:var(--muted);position:relative;padding-left:18px;line-height:1.5}.klist li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--glow)}
-/* Tabela */
-.tpusta{color:var(--muted);padding:24px;border:1px dashed var(--line);border-radius:16px;text-align:center}
-.ttab{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--bg2)}
-.trow{display:grid;grid-template-columns:44px 1fr 56px 56px 56px 72px;align-items:center;padding:14px 20px;border-top:1px solid var(--line);font-size:.95rem}
-.trow:first-child{border-top:0}
-.trow.thead{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);background:rgba(255,255,255,.03)}
-.trow span{text-align:center}
-.trow .tn{text-align:left;font-weight:600}
-.trow.mine{background:color-mix(in srgb, var(--glow) 14%, transparent)}
-.trow.mine .tn em{font-style:normal;font-size:.75rem;color:var(--glow);margin-left:6px}
-@media (max-width:600px){.trow{grid-template-columns:30px 1fr 36px 36px 36px 48px;padding:12px 12px;font-size:.85rem}}
-.kcard .ligpos{font-family:var(--f-display);font-size:2rem;font-weight:700;margin:4px 0 14px;color:var(--fg)}
-.kcard.lig{max-width:640px}
 </style>
 <title>Exomaly</title>
 <meta name="description" content="Exomaly – polska drużyna CS2 w Starter League. Skład, mecze, terminarz, osiągnięcia i aktualności.">
@@ -453,7 +440,6 @@ body{padding-inline:0}
     <button type="button" role="tab" data-go="home">Start</button>
     <button type="button" role="tab" data-go="sklad">Skład</button>
     <button type="button" role="tab" data-go="mecze">Mecze</button>
-    <button type="button" role="tab" data-go="tabela">Tabela</button>
     <button type="button" role="tab" data-go="onas">O nas</button>
     <button type="button" role="tab" data-go="osiagniecia">Osiągnięcia</button>
     <button type="button" role="tab" data-go="partnerzy">Partnerzy</button>
@@ -512,12 +498,6 @@ body{padding-inline:0}
     <div class="list2" id="mlist"></div>
   </section>
 
-  <section class="view" data-view="tabela">
-    <div class="head2 a" style="--i:0">
-      <div><p class="eyebrow">Starter League</p><h2 class="sec">Tabela</h2></div>
-    </div>
-    <div id="tabela" class="a" style="--i:1"></div>
-  </section>
 
   <section class="view" data-view="onas">
     <div class="about">
@@ -635,18 +615,7 @@ function hasTime(s){ return /[ T]\d{1,2}:\d{2}/.test(String(s)); }
 function fmtDate(s){ var d=parseDT(s); return d?(d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear()):(s||''); }
 var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 function list(k){ return Array.isArray(D[k])?D[k]:[]; }
-function renderTabela(){
-  var el=$('tabela'); if(!el) return;
-  var L=D.liga||{};
-  var has=(L.dywizja||L.miejsce||L.opis);
-  if(!has){ el.innerHTML='<p class="tpusta">Informacja o pozycji w lidze pojawi się tutaj.</p>'; return; }
-  el.innerHTML='<div class="kcard lig">'+
-    (L.dywizja?'<h3>'+esc(L.dywizja)+'</h3>':'')+
-    (L.miejsce?'<p class="ligpos">'+esc(L.miejsce)+'</p>':'')+
-    (L.opis?'<p>'+esc(L.opis).replace(/\n/g,'<br>')+'</p>':'')+
-    '</div>';
-}
-renderTabela();
+
 
 /* ---------- teksty i linki ---------- */
 var liga=(D.druzyna&&D.druzyna.ligaLink)||'https://starterleague.pl';
@@ -834,7 +803,7 @@ function renderTimeline(){
 }
 
 /* ---------- zakładki ---------- */
-var VIEWS=['home','sklad','mecze','tabela','onas','osiagniecia','partnerzy','aktualnosci','kontakt','prywatnosc'];
+var VIEWS=['home','sklad','mecze','onas','osiagniecia','partnerzy','aktualnosci','kontakt','prywatnosc'];
 function go(name,push){
   if(VIEWS.indexOf(name)<0) name='home';
   document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('on',v.getAttribute('data-view')===name); });
