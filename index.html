@@ -208,6 +208,11 @@ h1.mark { margin: 18px 0 16px; font-family: var(--f-display); font-weight: 300; 
 .cd div { background: color-mix(in srgb, var(--bg) 70%, transparent); border: 1px solid var(--line); border-radius: 12px; padding: 10px 4px; text-align: center; }
 .cd b { display: block; font-family: var(--f-display); font-weight: 500; font-size: 1.5rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .cd small { font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.lscore { position: relative; text-align: center; margin: 22px 0 6px; }
+.lscore b { display: block; font-family: var(--f-display); font-weight: 700; font-size: 2.4rem; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.lscore small { display: block; margin-top: 8px; font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.lpill { display: inline-block; font-size: .66rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fg); border: 1px solid color-mix(in srgb, var(--fg) 55%, transparent); border-radius: 999px; padding: 3px 10px; animation: lblink 1.6s ease-in-out infinite; }
+@keyframes lblink { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
 .next .meta { position: relative; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: .88rem; color: var(--muted); }
 
 .demo { text-align: center; font-size: .78rem; color: var(--muted); border: 1px dashed var(--line); border-radius: 10px; padding: 8px 12px; }
@@ -916,7 +921,7 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
           if(cd) cd.outerHTML='<div class="nomatch"><b>Mecz trwa</b><span>Trzymaj kciuki za Exomaly.</span></div>';
           return;
         }
-        clearInterval(timer); start(pickNext()); return;
+        clearInterval(timer); if(!window.__leagueNext) start(pickNext()); return;
       }
       var s=Math.floor(ms/1000);
       $('cd-d').textContent=Math.floor(s/86400);
@@ -926,7 +931,40 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
     }
     timer=setInterval(tick,1000); tick();
   }
+  window.__nextApi={ start:start, pick:pickNext, stop:function(){ if(timer) clearInterval(timer); timer=null; } };
   start(UP[0]);
+})();
+
+/* ---------- mecz na żywo i następny mecz z ligi (/api/overview) ---------- */
+(function(){
+  var box=document.getElementById('next'); if(!box) return;
+  var last='';
+  function render(ov){
+    var key=JSON.stringify(ov); if(key===last) return; last=key;
+    var api=window.__nextApi; if(!api) return;
+    if(ov.live){
+      var L=ov.live;
+      api.stop(); window.__leagueNext=true;
+      box.innerHTML='<h2>Mecz na żywo</h2>'+
+        '<div class="vs"><div class="t">EXOMALY</div><div class="x">VS</div><div class="t">'+esc(L.opponent.name||'?')+'</div></div>'+
+        (L.seriesScore?'<div class="lscore"><b>'+esc(L.seriesScore.mine)+' : '+esc(L.seriesScore.opponent)+'</b><small>seria'+(L.bestOf?' · BO'+esc(L.bestOf):'')+'</small></div>':'')+
+        '<div class="meta"><span>'+esc(L.map||'mapa')+(L.roundScore?' · '+esc(L.roundScore.mine)+' : '+esc(L.roundScore.opponent):'')+'</span><span class="lpill">● Live</span></div>';
+      return;
+    }
+    if(ov.next){
+      var n=ov.next, t=(n.time||'').slice(0,5);
+      var dt=parseDT(n.date+(t?' '+t:''));
+      if(dt && dt>new Date()){
+        window.__leagueNext=true;
+        api.start({dt:dt, m:{przeciwnik:n.opponent.name||'?', data:n.date+(t?' '+t:''), mapa:(n.bestOf?'BO'+n.bestOf:'')+(n.division?' · '+n.division:'')}});
+        return;
+      }
+    }
+    window.__leagueNext=false;
+    api.start(api.pick());
+  }
+  function load(){ fetch('/api/overview',{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(ov){ if(ov) render(ov); }).catch(function(){}); }
+  load(); setInterval(load,15000);
 })();
 
 /* ---------- liczniki ---------- */
