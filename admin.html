@@ -190,7 +190,7 @@ function normalize(o){
   o.druzyna=Object.assign({opis:'',ligaLink:''},o.druzyna||{});
   o.onas=Object.assign({naglowek:'O nas',tekst:''},o.onas||{});
   o.social=Object.assign({instagram:'',tiktok:'',discord:''},o.social||{});
-  o.ustawienia=Object.assign({motyw:'domyslny'},o.ustawienia||{});
+  o.ustawienia=Object.assign({motyw:'domyslny',tlo:'anubis',tloUrl:''},o.ustawienia||{});
   LISTS.forEach(function(s){ if(!Array.isArray(o[s.k])) o[s.k]=[]; });
   return o;
 }
@@ -257,6 +257,12 @@ function render(){
     '<label class="fld"><span>Motyw</span><select data-path="ustawienia.motyw">'+
     [['domyslny','Domyślny (bez dekoracji)'],['halloween','Halloween'],['swieta','Święta']].map(function(o){ return '<option value="'+o[0]+'"'+(S.ustawienia.motyw===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')+
     '</select></label>');
+  h+=section('Tło strony',
+    '<p class="hint">Zmiana tła jest widoczna na stronie po zapisie.</p>'+
+    '<label class="fld"><span>Tło</span><select data-path="ustawienia.tlo">'+
+    [['domyslne','Domyślne (ciemne, bez zdjęcia)'],['anubis','Mapa CS2 (czarno-biała)'],['wlasne','Własne zdjęcie (link)']].map(function(o){ return '<option value="'+o[0]+'"'+(S.ustawienia.tlo===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')+
+    '</select></label>'+
+    '<label class="fld"><span>Link do własnego zdjęcia (https://…), używany gdy wybrane jest „Własne zdjęcie"</span><input data-path="ustawienia.tloUrl" value="'+esc(S.ustawienia.tloUrl||'')+'"></label>');
   LISTS.forEach(function(sec){
     var extra=sec.k==='terminarz'?'<button type="button" class="danger" data-act="endnow">Usuń trwający mecz</button>':'';
     h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button> '+extra+'</div>'+listHTML(sec));
