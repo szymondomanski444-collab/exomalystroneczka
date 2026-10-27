@@ -1257,7 +1257,7 @@ function loadData(){
 }
 /* wyniki z ligi (/api/results): gdy są, zastępują ręczną listę; w razie błędu zostaje lista z panelu */
 function withLiveResults(D){
-  var timeout=new Promise(function(r){ setTimeout(function(){ r(null); },4000); });
+  var timeout=new Promise(function(r){ setTimeout(function(){ r(null); },9000); });
   var req=fetch('/api/results',{cache:'no-store'})
     .then(function(r){ return r.ok?r.json():null; })
     .catch(function(){ return null; });

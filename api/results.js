@@ -3,7 +3,7 @@
 // Zmienne: STARTERLEAGUE_API_KEY (wymagana), STARTERLEAGUE_API_BASE (opcjonalna),
 // STARTERLEAGUE_KEY_HEADER (opcjonalna, domyślnie Authorization z Bearer),
 // STARTERLEAGUE_TEAM_NAME (opcjonalna, domyślnie wyszukiwanie po "exomaly"),
-// STARTERLEAGUE_MAX_PAGES (opcjonalna, domyślnie 10).
+// STARTERLEAGUE_MAX_PAGES (opcjonalna, domyślnie 50).
 
 const DEFAULT_BASE = 'https://starterleague.pl/api/partners';
 const DEFAULT_TEAM_PATTERN = /exomaly/i;
@@ -52,36 +52,47 @@ module.exports = async (req, res) => {
   const pattern = process.env.STARTERLEAGUE_TEAM_NAME
     ? new RegExp(process.env.STARTERLEAGUE_TEAM_NAME.replace(/[^\x20-\x7E]/g, ''), 'i')
     : DEFAULT_TEAM_PATTERN;
-  const maxPages = Math.max(1, Math.min(50, parseInt(process.env.STARTERLEAGUE_MAX_PAGES, 10) || 10));
+  const maxPages = Math.max(1, Math.min(50, parseInt(process.env.STARTERLEAGUE_MAX_PAGES, 10) || 50));
   const headerName = (process.env.STARTERLEAGUE_KEY_HEADER || 'Authorization').replace(/[^\x21-\x7E]/g, '');
   const isAuth = headerName.toLowerCase() === 'authorization';
 
   const headers = { Accept: 'application/json' };
   headers[headerName] = isAuth && !/^Bearer /i.test(rawKey) ? 'Bearer ' + rawKey : rawKey;
 
-  try {
-    const matches = [];
-    let page = 1;
-    let hasNext = true;
+  const fetchPage = async (n) => {
+    const r = await fetch(base + '/matches/history?page=' + n, { headers });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  };
 
-    while (hasNext && page <= maxPages) {
-      const r = await fetch(base + '/matches/history?page=' + page, { headers });
-      if (!r.ok) {
-        return res.status(502).json({ error: 'Liga zwróciła błąd ' + r.status });
-      }
-      const j = await r.json();
+  try {
+    const first = await fetchPage(1);
+    const totalPages = Math.max(1, Math.min(maxPages, (first.pagination && first.pagination.totalPages) || 1));
+    const rest = [];
+    for (let n = 2; n <= totalPages; n += 5) {
+      const batch = [];
+      for (let k = n; k < Math.min(n + 5, totalPages + 1); k++) batch.push(fetchPage(k));
+      rest.push(...(await Promise.all(batch)));
+    }
+    const pages = [first, ...rest];
+
+    const matches = [];
+    let totalItems = 0;
+    for (const j of pages) {
       const items = Array.isArray(j.items) ? j.items : [];
+      totalItems += items.length;
       for (const m of items) {
         if (isOurTeam(m.team1, pattern) || isOurTeam(m.team2, pattern)) {
           matches.push(mapMatch(m, pattern));
         }
       }
-      hasNext = !!(j.pagination && j.pagination.hasNextPage);
-      page += 1;
     }
+    matches.sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
 
     return res.status(200).json({
       updated: new Date().toISOString(),
+      pagesScanned: pages.length,
+      itemsScanned: totalItems,
       matches,
     });
   } catch (e) {
