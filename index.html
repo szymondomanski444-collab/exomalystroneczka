@@ -546,6 +546,19 @@ body[data-motyw="halloween"] #mlist .mrow:nth-child(2){position:relative}
 body[data-motyw="halloween"] #mlist .mrow:nth-child(2)::before{content:"";position:absolute;right:6px;top:50%;margin-top:-17px;width:30px;height:30px;background:var(--pk) center/contain no-repeat;pointer-events:none;z-index:1;filter:drop-shadow(0 0 8px rgba(255,122,26,.5));animation:flick 3.4s ease-in-out infinite}
 @media (max-width:640px){body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::before,body[data-motyw="halloween"] .pl::before,body[data-motyw="halloween"] .kc::before,body[data-motyw="halloween"] .tl-i .tl-card::before,body[data-motyw="halloween"] .pt::before{width:24px;height:24px}}
 body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::before,body[data-motyw="halloween"] .pl::before,body[data-motyw="halloween"] .kc::before,body[data-motyw="halloween"] .tl-card::before,body[data-motyw="halloween"] .pt::before{}
+/* ===== tabela ligowa ===== */
+.tbl-wrap{overflow-x:auto;border-top:1px solid var(--line)}
+.tbl{width:100%;border-collapse:collapse;min-width:560px;font-size:.95rem}
+.tbl th{font-family:var(--f-m);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);text-align:right;padding:14px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:16px 12px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.tbl th:nth-child(2),.tbl td:nth-child(2){text-align:left}
+.tbl td:nth-child(2){font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.tbl td:nth-child(1){width:56px;color:var(--mute);font-family:var(--f-d)}
+.tbl td:last-child{font-family:var(--f-d);font-size:1.05rem}
+.tbl tr.me td{background:rgba(255,255,255,.07)}
+.tbl tr.me td:nth-child(2){color:var(--glow)}
+.tbl tr:hover td{background:var(--card)}
+.tbl-note{margin:14px 0 0;font-family:var(--f-m);font-size:.74rem;color:var(--mute)}
 </style>
 </head>
 <body>
@@ -574,6 +587,7 @@ body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::bef
     <button type="button" role="tab" data-go="home">Start</button>
     <button type="button" role="tab" data-go="sklad">Skład</button>
     <button type="button" role="tab" data-go="mecze">Mecze</button>
+      <button type="button" role="tab" data-go="tabela">Tabela</button>
     <button type="button" role="tab" data-go="onas">O nas</button>
     <button type="button" role="tab" data-go="osiagniecia">Osiągnięcia</button>
     <button type="button" role="tab" data-go="partnerzy">Partnerzy</button>
@@ -633,6 +647,11 @@ body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::bef
     <div class="list2" id="mlist"></div>
   </section>
 
+
+  <section class="view" data-view="tabela">
+    <div class="head2 a" style="--i:0"><div><p class="eyebrow">Starter League</p><h2 class="sec">Tabela</h2></div></div>
+    <div id="tabelaBox"></div>
+  </section>
 
   <section class="view" data-view="onas">
     <div class="about">
@@ -1026,8 +1045,30 @@ function renderTimeline(){
   items.forEach(function(el){ io.observe(el); });
 }
 
+
+/* ---------- tabela ligowa (z /api/standings) ---------- */
+function loadTable(){
+  var box=$('tabelaBox'); if(!box) return;
+  box.innerHTML='<div class="empty">Ładowanie tabeli…</div>';
+  fetch('/api/standings',{cache:'no-store'})
+    .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+    .then(function(res){
+      if(!res.ok){ box.innerHTML='<div class="empty">Nie udało się pobrać tabeli. Spróbuj ponownie za chwilę.</div>'; return; }
+      var rows=(res.j&&res.j.table)||[];
+      if(!rows.length){ box.innerHTML='<div class="empty">Tabela pojawi się tutaj, gdy liga opublikuje wyniki.</div>'; return; }
+      var html='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Poz.</th><th>Drużyna</th><th>Mecze</th><th>W</th><th>P</th><th>Pkt</th></tr></thead><tbody>'+
+        rows.map(function(x){
+          var me=/exomaly/i.test(x.name||'');
+          return '<tr'+(me?' class="me"':'')+'><td>'+esc(x.rank)+'</td><td>'+esc(x.name)+'</td><td>'+esc(x.mecze)+'</td><td>'+esc(x.wygrane)+'</td><td>'+esc(x.przegrane)+'</td><td>'+esc(x.punkty)+'</td></tr>';
+        }).join('')+'</tbody></table></div>'+
+        '<p class="tbl-note">Dane z Starter League'+(res.j.division?' · '+esc(res.j.division):'')+'</p>';
+      box.innerHTML=html;
+    })
+    .catch(function(){ box.innerHTML='<div class="empty">Nie udało się pobrać tabeli. Spróbuj ponownie za chwilę.</div>'; });
+}
+
 /* ---------- zakładki ---------- */
-var VIEWS=['home','sklad','mecze','onas','osiagniecia','partnerzy','aktualnosci','kontakt','prywatnosc'];
+var VIEWS=['home','sklad','mecze','tabela','onas','osiagniecia','partnerzy','aktualnosci','kontakt','prywatnosc'];
 function go(name,push){
   if(VIEWS.indexOf(name)<0) name='home';
   document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('on',v.getAttribute('data-view')===name); });
@@ -1035,6 +1076,7 @@ function go(name,push){
   if(name==='sklad') renderRoster();
   if(name==='mecze'){ setSeg($('matchSeg'),'data-mv',MV); renderMatches(); }
   if(name==='osiagniecia') renderTimeline();
+  if(name==='tabela') loadTable();
   if(push!==false && location.hash!=='#'+name) history.replaceState(null,'','#'+name);
   window.scrollTo(0,0);
   var v=document.querySelector('.view.on');
