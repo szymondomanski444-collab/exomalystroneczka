@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
     }
     const j = await r.json();
     const d = (j.divisions || [])[0];
-    const rows = d && Array.isArray(d.tablo) ? d.tablo : [];
+    const rows = d && Array.isArray(d.table) ? d.table : [];
 
     const divisionNames = (j.divisions || []).map((x) => (x && (x.name || x.division || x.title)) || '?');
 
@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
         divisionNames,
         topKeys: Object.keys(j || {}),
         divisionKeys: d ? Object.keys(d) : [],
-        tabloLength: Array.isArray(d && d.tablo) ? d.tablo.length : null,
+        tabloLength: Array.isArray(d && d.table) ? d.table.length : null,
       },
       updated: new Date().toISOString(),
       table: rows.map((x) => ({
