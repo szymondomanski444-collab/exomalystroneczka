@@ -556,6 +556,9 @@ body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::bef
 .tbl td:nth-child(1){width:56px;color:var(--mute);font-family:var(--f-d)}
 .tbl td:last-child{font-family:var(--f-d);font-size:1.05rem}
 .tbl tr.me td{background:rgba(255,255,255,.07)}
+.tbl tr.top td{background:rgba(255,122,26,.08)}
+.tbl tr.top td:first-child{color:var(--glow)}
+.tbl .up{display:inline-block;margin-left:8px;font-family:var(--f-m);font-size:.6rem;font-weight:700;letter-spacing:.1em;color:#ff7a1a;vertical-align:middle}
 .tbl tr.me td:nth-child(2){color:var(--glow)}
 .tbl tr:hover td{background:var(--card)}
 .tbl-note{margin:14px 0 0;font-family:var(--f-m);font-size:.74rem;color:var(--mute)}
@@ -1059,9 +1062,12 @@ function loadTable(){
       var html='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Poz.</th><th>Drużyna</th><th>Mecze</th><th>W</th><th>P</th><th>Pkt</th></tr></thead><tbody>'+
         rows.map(function(x){
           var me=/exomaly/i.test(x.name||'');
-          return '<tr'+(me?' class="me"':'')+'><td>'+esc(x.rank)+'</td><td>'+esc(x.name)+'</td><td>'+esc(x.mecze)+'</td><td>'+esc(x.wygrane)+'</td><td>'+esc(x.przegrane)+'</td><td>'+esc(x.punkty)+'</td></tr>';
+          var top=Number(x.rank)<=3;
+          var cls=(me?' me':'')+(top?' top':'');
+          var pos=esc(x.rank)+(top?'<span class="up" title="Awans">▲ AWANS</span>':'');
+          return '<tr'+(cls?' class="'+cls.trim()+'"':'')+'><td>'+pos+'</td><td>'+esc(x.name)+'</td><td>'+esc(x.mecze)+'</td><td>'+esc(x.wygrane)+'</td><td>'+esc(x.przegrane)+'</td><td>'+esc(x.punkty)+'</td></tr>';
         }).join('')+'</tbody></table></div>'+
-        '<p class="tbl-note">Dane z Starter League'+(res.j.division?' · '+esc(res.j.division):'')+'</p>';
+        '<p class="tbl-note">▲ AWANS – miejsca 1–3 awansują. Dane z Starter League'+(res.j.division?' · '+esc(res.j.division):'')+'</p>';
       box.innerHTML=html;
     })
     .catch(function(){ box.innerHTML='<div class="empty">Nie udało się pobrać tabeli. Spróbuj ponownie za chwilę.</div>'; });
