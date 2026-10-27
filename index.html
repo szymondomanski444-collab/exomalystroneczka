@@ -691,7 +691,7 @@ document.body.setAttribute('data-motyw',(D.ustawienia&&D.ustawienia.motyw)||'dom
   var sek=Math.min(120,Math.max(5,+ust.tloCzas||20));
   var lista=[];
   if(modo==='pokaz'){
-    lista=['bg/tlo1.jpg','bg/tlo2.jpg','bg/tlo3.jpg','bg/tlo4.jpg','bg/tlo5.jpg','bg/tlo6.jpg','bg/anubis.jpg'];
+    lista=['bg/tlo1.jpg','bg/tlo2.jpg','bg/tlo3.jpg','bg/tlo4.jpg','bg/tlo5.jpg','bg/tlo6.jpg','bg/tlo7.jpg','bg/tlo8.jpg','bg/tlo9.jpg','bg/tlo10.jpg','bg/anubis.jpg'];
     /* kolejność losowa przy każdym wejściu; pierwsze tło różni się od tego z poprzedniej wizyty */
     for(var z=lista.length-1;z>0;z--){ var r=Math.floor(Math.random()*(z+1)); var t=lista[z]; lista[z]=lista[r]; lista[r]=t; }
     try{ if(lista.length>1 && localStorage.getItem('exo_tlo_last')===lista[0]){ lista.push(lista.shift()); } localStorage.setItem('exo_tlo_last',lista[0]); }catch(e){}
@@ -725,7 +725,12 @@ document.body.setAttribute('data-motyw',(D.ustawienia&&D.ustawienia.motyw)||'dom
   if(slides.length>1){
     prog.classList.add('on'); cnt.classList.add('on');
     restartBar();
-    setInterval(function(){ idx=(idx+1)%slides.length; show(idx); restartBar(); }, sek*1000);
+    setInterval(function(){
+      idx=(idx+1)%slides.length;
+      /* po każdym pełnym obiegu losujemy kolejność od nowa */
+      if(idx===0){ for(var z=slides.length-1;z>0;z--){ var r=Math.floor(Math.random()*(z+1)); var t=slides[z]; slides[z]=slides[r]; slides[r]=t; } }
+      show(idx); restartBar();
+    }, sek*1000);
   }
 })();
 var DAY=["nd","pn","wt","śr","czw","pt","sob"];
