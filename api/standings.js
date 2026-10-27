@@ -37,8 +37,11 @@ module.exports = async (req, res) => {
     const d = (j.divisions || [])[0];
     const rows = d && Array.isArray(d.tablo) ? d.tablo : [];
 
+    const divisionNames = (j.divisions || []).map((x) => (x && (x.name || x.division || x.title)) || '?');
+
     return res.status(200).json({
       division,
+      debug: { divisionsFound: divisionNames.length, divisionNames, topKeys: Object.keys(j || {}) },
       updated: new Date().toISOString(),
       table: rows.map((x) => ({
         rank: x.rank,
