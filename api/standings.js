@@ -41,7 +41,13 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({
       division,
-      debug: { divisionsFound: divisionNames.length, divisionNames, topKeys: Object.keys(j || {}) },
+      debug: {
+        divisionsFound: divisionNames.length,
+        divisionNames,
+        topKeys: Object.keys(j || {}),
+        divisionKeys: d ? Object.keys(d) : [],
+        tabloLength: Array.isArray(d && d.tablo) ? d.tablo.length : null,
+      },
       updated: new Date().toISOString(),
       table: rows.map((x) => ({
         rank: x.rank,
