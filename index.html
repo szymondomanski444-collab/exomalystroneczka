@@ -1255,7 +1255,28 @@ function loadData(){
     return (res&&res.data)?res.data:(window.DANE||{});
   });
 }
-loadData().then(boot);
+/* wyniki z ligi (/api/results): gdy są, zastępują ręczną listę; w razie błędu zostaje lista z panelu */
+function withLiveResults(D){
+  var timeout=new Promise(function(r){ setTimeout(function(){ r(null); },4000); });
+  var req=fetch('/api/results',{cache:'no-store'})
+    .then(function(r){ return r.ok?r.json():null; })
+    .catch(function(){ return null; });
+  return Promise.race([req,timeout]).then(function(j){
+    if(!j||!Array.isArray(j.matches)||!j.matches.length) return D;
+    var live=j.matches.map(function(m){
+      return {
+        data: m.date||'',
+        przeciwnik: (m.opponent&&m.opponent.name)||'?',
+        mapa: m.division||'',
+        my: m.score&&m.score.mine!=null?m.score.mine:0,
+        oni: m.score&&m.score.opponent!=null?m.score.opponent:0,
+        logo: (m.opponent&&m.opponent.logo)||''
+      };
+    });
+    return Object.assign({}, D, { wyniki: live });
+  });
+}
+loadData().then(withLiveResults).then(boot);
 
 </script>
 <script>
