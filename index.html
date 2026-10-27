@@ -1077,7 +1077,7 @@ function go(name,push){
   if(name==='mecze'){ setSeg($('matchSeg'),'data-mv',MV); renderMatches(); }
   if(name==='osiagniecia') renderTimeline();
   if(name==='tabela') loadTable();
-  if(push!==false && location.hash!=='#'+name) history.replaceState(null,'','#'+name);
+  if(push!==false && location.hash!=='#'+name){ try{ history.replaceState(null,'','#'+name); }catch(e){} }
   window.scrollTo(0,0);
   var v=document.querySelector('.view.on');
   countUp(v);
