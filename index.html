@@ -483,16 +483,20 @@ body{padding-inline:0}
 @media (prefers-reduced-motion:reduce){.tl.ready .tl-i{opacity:1;transform:none;transition:none}}
 </style>
 <style>
-/* ===== tło strony (wybór w panelu admina) ===== */
+/* ===== tło strony: pokaz zdjęć, płynne przejścia, pasek czasu ===== */
 .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(ellipse 80% 60% at 50% -10%,#1f1f25 0%,#0b0b0d 58%,#000 100%)}
-.aurora::before,.aurora::after{content:"";position:absolute;inset:0;display:none}
-.aurora::before{inset:-2%;background:var(--bgimg,none) center 42%/cover no-repeat;animation:bgDrift 40s ease-in-out infinite alternate}
-.aurora::after{background:linear-gradient(180deg,rgba(11,11,13,.45) 0%,rgba(11,11,13,.8) 50%,rgba(11,11,13,.96) 100%)}
-body[data-tlo="anubis"] .aurora::before,body[data-tlo="wlasne"] .aurora::before,body[data-tlo="anubis"] .aurora::after,body[data-tlo="wlasne"] .aurora::after{display:block}
-body[data-tlo="anubis"] .aurora::before{filter:grayscale(.92) contrast(1.06) brightness(.7);opacity:.85}
-body[data-tlo="wlasne"] .aurora::before{filter:brightness(.7)}
-@keyframes bgDrift{from{transform:scale(1) translate(0,0)}to{transform:scale(1.06) translate(-1.2%,-.8%)}}
-@media (prefers-reduced-motion:reduce){.aurora::before{animation:none}}
+.aurora .slide{position:absolute;inset:-2%;background:var(--img) center 42%/cover no-repeat;filter:grayscale(.88) contrast(1.05) brightness(.66);opacity:0;transition:opacity 2.4s ease-in-out}
+.aurora .slide.on{opacity:1}
+.aurora .slide.kb{animation:kb var(--t,20s) linear forwards}
+.aurora::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,11,13,.45) 0%,rgba(11,11,13,.8) 50%,rgba(11,11,13,.96) 100%)}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.08)}}
+.tprog{position:fixed;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.08);z-index:2;pointer-events:none;display:none}
+.tprog.on{display:block}
+.tprog i{display:block;height:100%;width:0;background:var(--acc,#e5202b)}
+.tprog.run i{animation:tp var(--t,20s) linear forwards}
+@keyframes tp{from{width:0}to{width:100%}}
+html.a11y .tprog{display:none!important}
+@media (prefers-reduced-motion:reduce){.aurora .slide.kb{animation:none}.tprog.run i{animation:none;width:100%}}
 </style>
 </head>
 <body>
@@ -676,14 +680,39 @@ function boot(D){
 'use strict';
 var MON=["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
 document.body.setAttribute('data-motyw',(D.ustawienia&&D.ustawienia.motyw)||'domyslny');
-/* tło strony: domyślne, mapa CS2 (plik w repo) albo własny link do zdjęcia */
+/* tło strony: pokaz zdjęć / jedno zdjęcie / domyślne / własny link */
 (function(){
-  var ust=D.ustawienia||{}, tlo=ust.tlo||'anubis', url=String(ust.tloUrl||'').trim();
-  if(tlo==='wlasne' && !/^https?:\/\/[^\s"'()<>\\]+$/i.test(url)) tlo='domyslne';
-  if(tlo!=='anubis' && tlo!=='wlasne') tlo='domyslne';
-  document.body.setAttribute('data-tlo',tlo);
-  if(tlo==='anubis') document.documentElement.style.setProperty('--bgimg','url("bg/anubis.jpg")');
-  if(tlo==='wlasne') document.documentElement.style.setProperty('--bgimg','url("'+url+'")');
+  var ust=D.ustawienia||{}, modo=ust.tlo||'pokaz', url=String(ust.tloUrl||'').trim();
+  var sek=Math.min(120,Math.max(5,+ust.tloCzas||20));
+  var lista=[];
+  if(modo==='pokaz') lista=['bg/tlo1.jpg','bg/tlo2.jpg','bg/tlo3.jpg','bg/anubis.jpg'];
+  else if(modo==='anubis') lista=['bg/anubis.jpg'];
+  else if(modo==='wlasne' && /^https?:\/\/[^\s"'()<>\\]+$/i.test(url)) lista=[url];
+  else modo='domyslne';
+  document.body.setAttribute('data-tlo',modo);
+  var box=document.querySelector('.aurora'); if(!box || !lista.length) return;
+  box.style.setProperty('--t',sek+'s');
+  var slides=lista.map(function(src){
+    var d=document.createElement('div'); d.className='slide';
+    d.style.setProperty('--img','url("'+src+'")');
+    box.appendChild(d);
+    var pre=new Image(); pre.src=src;
+    return d;
+  });
+  var prog=document.createElement('div'); prog.className='tprog'; prog.innerHTML='<i></i>';
+  prog.style.setProperty('--t',sek+'s');
+  document.body.appendChild(prog);
+  var idx=0;
+  function show(i){
+    slides.forEach(function(d,k){ d.classList.toggle('on',k===i); d.classList.toggle('kb',k===i); });
+  }
+  function restartBar(){ prog.classList.remove('run'); void prog.offsetWidth; prog.classList.add('run'); }
+  show(0);
+  if(slides.length>1){
+    prog.classList.add('on');
+    restartBar();
+    setInterval(function(){ idx=(idx+1)%slides.length; show(idx); restartBar(); }, sek*1000);
+  }
 })();
 var DAY=["nd","pn","wt","śr","czw","pt","sob"];
 var SILHOUETTE = '<svg viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2e2e2" stop-opacity=".95"/><stop offset="1" stop-color="#101010" stop-opacity="1"/></linearGradient></defs><circle cx="100" cy="68" r="36" fill="url(#sg)"/><path d="M20 200c0-46 36-78 80-78s80 32 80 78z" fill="url(#sg)"/></svg>';

@@ -190,7 +190,7 @@ function normalize(o){
   o.druzyna=Object.assign({opis:'',ligaLink:''},o.druzyna||{});
   o.onas=Object.assign({naglowek:'O nas',tekst:''},o.onas||{});
   o.social=Object.assign({instagram:'',tiktok:'',discord:''},o.social||{});
-  o.ustawienia=Object.assign({motyw:'domyslny',tlo:'anubis',tloUrl:''},o.ustawienia||{});
+  o.ustawienia=Object.assign({motyw:'domyslny',tlo:'pokaz',tloUrl:'',tloCzas:20},o.ustawienia||{});
   LISTS.forEach(function(s){ if(!Array.isArray(o[s.k])) o[s.k]=[]; });
   return o;
 }
@@ -260,7 +260,10 @@ function render(){
   h+=section('Tło strony',
     '<p class="hint">Zmiana tła jest widoczna na stronie po zapisie.</p>'+
     '<label class="fld"><span>Tło</span><select data-path="ustawienia.tlo">'+
-    [['domyslne','Domyślne (ciemne, bez zdjęcia)'],['anubis','Mapa CS2 (czarno-biała)'],['wlasne','Własne zdjęcie (link)']].map(function(o){ return '<option value="'+o[0]+'"'+(S.ustawienia.tlo===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')+
+    [['pokaz','Pokaz zdjęć (zmienia się co jakiś czas)'],['anubis','Mapa CS2 (jedno zdjęcie)'],['domyslne','Domyślne (ciemne, bez zdjęcia)'],['wlasne','Własne zdjęcie (link)']].map(function(o){ return '<option value="'+o[0]+'"'+(S.ustawienia.tlo===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')+
+    '</select></label>'+
+    '<label class="fld"><span>Co ile sekund zmienia się tło (tryb pokazu)</span><select data-path="ustawienia.tloCzas">'+
+    [10,15,20,30,60].map(function(n){ return '<option value="'+n+'"'+(String(S.ustawienia.tloCzas||20)===String(n)?' selected':'')+'>'+n+' s</option>'; }).join('')+
     '</select></label>'+
     '<label class="fld"><span>Link do własnego zdjęcia (https://…), używany gdy wybrane jest „Własne zdjęcie"</span><input data-path="ustawienia.tloUrl" value="'+esc(S.ustawienia.tloUrl||'')+'"></label>');
   LISTS.forEach(function(sec){
