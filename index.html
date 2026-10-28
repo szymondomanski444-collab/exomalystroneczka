@@ -1019,11 +1019,24 @@ $('squadSeg').addEventListener('click',function(e){
 
 /* ---------- mecze ---------- */
 var MV='res';
+function streakTile(){
+  var cur=0, curO=null;
+  for(var i=0;i<RES.length;i++){
+    var o=outcome(RES[i].m);
+    if(o==='d') break;
+    if(curO===null) curO=o;
+    if(o===curO) cur++; else break;
+  }
+  var v = curO ? cur+(curO==='w'?' W':' P') : '–';
+  var bw=0, runw=0;
+  RES.forEach(function(x){ var o=outcome(x.m); if(o==='w'){ runw++; if(runw>bw) bw=runw; } else runw=0; });
+  return '<div class="stat"><small>Seria</small><b style="font-size:1.6rem">'+esc(v)+'</b><small style="display:block;margin-top:6px;text-transform:none;letter-spacing:0">najdłuższa: '+bw+' wygranych</small></div>';
+}
 function renderMatches(){
   var form=RES.slice(0,5).map(function(x,k){ var o=outcome(x.m); return '<span class="fm'+(o==='w'?' w':'')+'" data-open="match" data-list="res" data-idx="'+k+'">'+(o==='w'?'W':o==='l'?'P':'R')+'</span>'; }).join('');
   $('sum').innerHTML='<div class="stat" data-open="stat" data-kind="wygrane"><b data-count="'+nW+'">0</b><small>Wygrane</small></div>'+
     '<div class="stat" data-open="stat" data-kind="przegrane"><b data-count="'+nL+'">0</b><small>Przegrane</small></div>'+
-    '<div class="stat"><small>Forma</small><div class="forma" style="margin-top:8px">'+(form||'<span class="fm">–</span>')+'</div></div>';
+    '<div class="stat"><small>Forma</small><div class="forma" style="margin-top:8px">'+(form||'<span class="fm">–</span>')+'</div></div>'+streakTile();
   var rows;
   if(MV==='res'){
     rows=RES.length?RES.map(function(x){ var m=x.m,o=outcome(m);
@@ -1169,7 +1182,7 @@ function matchHTML(x,isUp){
   if(isUp) return '<p class="lbl2">Terminarz</p><h3>Exomaly vs '+esc(m.przeciwnik||'?')+'</h3><p class="txt">Termin: '+esc(m.data)+'<br>Mapa: '+esc(m.mapa||'do ustalenia')+'</p>';
   var o=outcome(m), label=o==='w'?'Wygrana':o==='l'?'Przegrana':'Remis';
   return '<p class="lbl2">'+esc(fmtDate(m.data))+' · '+label+'</p><h3>Exomaly vs '+esc(m.przeciwnik||'?')+'</h3>'+
-    '<dl class="pm-dl"><div><dt>Wynik</dt><dd>'+esc(m.my)+' : '+esc(m.oni)+'</dd></div><div><dt>Mapa</dt><dd>'+esc(m.mapa||'—')+'</dd></div></dl>';
+    '<dl class="pm-dl"><div><dt>Wynik</dt><dd>'+esc(m.my)+' : '+esc(m.oni)+'</dd></div>'+(m.zrodlo==='liga'?'<div><dt>Dywizja</dt><dd>'+esc(m.mapa||'—')+'</dd></div>'+(m.bo?'<div><dt>Format</dt><dd>BO'+esc(m.bo)+'</dd></div>':'')+(m.godzina?'<div><dt>Godzina</dt><dd>'+esc(m.godzina)+'</dd></div>':''):'<div><dt>Mapa</dt><dd>'+esc(m.mapa||'—')+'</dd></div>')+'</dl>';
 }
 function openMatch(list,i){
   var isUp=list==='up', x=(isUp?UP:RES)[i]; if(!x) return;
@@ -1311,7 +1324,10 @@ function withLiveResults(D){
         mapa: m.division||'',
         my: m.score&&m.score.mine!=null?m.score.mine:0,
         oni: m.score&&m.score.opponent!=null?m.score.opponent:0,
-        logo: (m.opponent&&m.opponent.logo)||''
+        logo: (m.opponent&&m.opponent.logo)||'',
+        zrodlo: 'liga',
+        bo: m.bestOf||null,
+        godzina: (m.time||'').slice(0,5)
       };
     });
     return Object.assign({}, D, { wyniki: live });
