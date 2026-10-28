@@ -213,6 +213,8 @@ h1.mark { margin: 18px 0 16px; font-family: var(--f-display); font-weight: 300; 
 .lscore { position: relative; text-align: center; margin: 22px 0 6px; }
 .lscore b { display: block; font-family: var(--f-display); font-weight: 700; font-size: 2.4rem; line-height: 1; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
 .lscore small { display: block; margin-top: 8px; font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.nbtn { position: relative; margin-top: 16px; font: inherit; font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+.nbtn:hover { border-color: #3a3a3a; }
 .lpill { display: inline-block; font-size: .66rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fg); border: 1px solid color-mix(in srgb, var(--fg) 55%, transparent); border-radius: 999px; padding: 3px 10px; animation: lblink 1.6s ease-in-out infinite; }
 @keyframes lblink { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
 .next .meta { position: relative; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: .88rem; color: var(--muted); }
@@ -966,7 +968,21 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
     window.__leagueNext=false;
     api.start(api.pick());
   }
-  function load(){ fetch('/api/overview',{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(ov){ if(ov) render(ov); }).catch(function(){}); }
+  function notifyLive(ov){
+    if(!ov.live||!('Notification' in window)||Notification.permission!=='granted') return;
+    var k='exo_notif_'+ov.live.id;
+    try{ if(localStorage.getItem(k)) return; localStorage.setItem(k,'1'); }catch(e){}
+    var L=ov.live, sc=L.seriesScore?(L.seriesScore.mine+' : '+L.seriesScore.opponent):'';
+    try{ new Notification('Exomaly gra teraz!',{ body:'vs '+(L.opponent.name||'?')+(sc?' · seria '+sc:'') }); }catch(e){}
+  }
+  function notifButton(){
+    if(!('Notification' in window)||Notification.permission!=='default'||document.getElementById('notifBtn')) return;
+    var b=document.createElement('button');
+    b.id='notifBtn'; b.type='button'; b.className='nbtn'; b.textContent='Powiadom mnie o starcie meczu';
+    b.addEventListener('click',function(){ Notification.requestPermission().then(function(){ b.remove(); }).catch(function(){ b.remove(); }); });
+    box.appendChild(b);
+  }
+  function load(){ fetch('/api/overview',{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(ov){ if(ov){ render(ov); notifyLive(ov); notifButton(); } }).catch(function(){}); }
   load(); setInterval(load,15000);
 })();
 
