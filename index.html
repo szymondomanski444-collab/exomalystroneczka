@@ -242,8 +242,13 @@ h1.mark { margin: 18px 0 16px; font-family: var(--f-display); font-weight: 300; 
 .accbox .pcount{display:block;text-align:right;color:var(--muted);font-size:.75rem;margin-top:4px}
 .accbox .pedit .go{margin-top:14px}
 .accbox .pnote{color:var(--muted);font-size:.88rem;margin:8px 0 0}
-.accbox .pvrow{margin-top:14px}
-.accbox .pvnick{font-size:1.05rem}
+.accbox .pcard .pbanner{height:120px;border-radius:16px}
+.accbox .pbanner.none{background:linear-gradient(135deg,#1c1c1c,#050505)}
+.accbox .pid{display:flex;align-items:flex-end;gap:12px;margin-top:-30px;padding:0 4px}
+.accbox .pid .pav{width:68px;height:68px;border:3px solid #0a0a0a;flex:none}
+.accbox .pname{display:flex;flex-direction:column;min-width:0;padding-bottom:4px}
+.accbox .pname b{font-size:1.15rem;word-break:break-word}
+.accbox .pname span{color:var(--muted);font-size:.8rem}
 .accbox .pbio{color:var(--fg);white-space:pre-wrap;word-break:break-word;margin:14px 0 0}
 .accbox .pbio.empty{color:var(--muted);font-style:italic}
 .accbox .pcancel{width:100%;margin-top:8px;padding:11px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
@@ -1119,12 +1124,15 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
   function showView(note){
     var box=document.getElementById('pEdit'); if(!box) return;
     var p=pDraft, nm=(THEMES.filter(function(t){ return t[0]===p.theme; })[0]||THEMES[0])[1];
+    var letter=esc2((user.nick||'?').charAt(0).toUpperCase());
     box.innerHTML=
-      '<div class="pbanner" id="pBanPrev"></div>'+
-      '<div class="prow pvrow"><div class="pav" id="pAvPrev">'+(p.avatar?'':esc2((user.nick||'?').charAt(0).toUpperCase()))+'</div>'+
-        '<div><b class="pvnick">'+esc2(user.nick)+'</b><div class="pnote">Motyw: '+esc2(nm)+'</div></div></div>'+
-      '<p class="pbio'+(p.bio?'':' empty')+'">'+(p.bio?esc2(p.bio):'Nie dodano jeszcze opisu.')+'</p>'+
-      '<button class="go" id="pEditBtn" type="button">Edytuj profil</button>'+
+      '<div class="pcard">'+
+        '<div class="pbanner'+(p.banner?'':' none')+'" id="pBanPrev"></div>'+
+        '<div class="pid"><div class="pav" id="pAvPrev">'+(p.avatar?'':letter)+'</div>'+
+          '<div class="pname"><b>'+esc2(user.nick)+'</b><span>Motyw: '+esc2(nm)+'</span></div></div>'+
+        '<p class="pbio'+(p.bio?'':' empty')+'">'+(p.bio?esc2(p.bio):'Nie dodano jeszcze opisu.')+'</p>'+
+        '<button class="go" id="pEditBtn" type="button">Edytuj profil</button>'+
+      '</div>'+
       (note?'<div class="msg">'+esc2(note)+'</div>':'');
     setBg(document.getElementById('pBanPrev'),p.banner);
     setBg(document.getElementById('pAvPrev'),p.avatar);
@@ -1184,10 +1192,8 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
     pAv=undefined; pBan=undefined;
     body.innerHTML=
       '<h3>Twój profil</h3>'+
-      '<div class="kv"><span>Rola</span><span>'+(adm?'administrator':'użytkownik')+'</span></div>'+
       '<div class="pedit" id="pEdit"><p class="pnote">Wczytywanie profilu…</p></div>'+
       '<div class="sec">'+
-        '<a href="profil.html?u='+encodeURIComponent(user.nick)+'">Zobacz na stronie</a>'+
         (adm?'<a href="admin.html">Przejdź do panelu</a>':'')+
         '<button type="button" id="aOut">Wyloguj</button>'+
       '</div>';
