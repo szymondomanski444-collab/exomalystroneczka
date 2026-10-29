@@ -119,9 +119,12 @@ details.sec{margin-top:0}
 <div id="gate">
   <div class="box">
     <h1>Panel Exomaly</h1>
-    <p>Wpisz hasło administratora.</p>
+    <p id="gateTxt">Zaloguj się swoim ID i hasłem.</p>
+    <input id="gid" placeholder="ID (np. EX-ABC123)" autocomplete="username" autocapitalize="characters">
+    <input id="gcode" placeholder="Kod z zaproszenia" autocomplete="off" autocapitalize="characters" style="display:none">
     <input type="password" id="pw" placeholder="Hasło" autocomplete="current-password">
     <button class="primary" id="gateBtn" type="button">Wejdź</button>
+    <button id="actBtn" type="button" style="margin-top:10px;background:transparent;border:0;color:var(--mute);text-decoration:underline;cursor:pointer;font:inherit">Pierwsze logowanie – mam kod z zaproszenia</button>
     <div id="gateMsg"></div>
   </div>
 </div>
@@ -390,14 +393,38 @@ function openApp(){
     if(draft) status('Masz niezapisane zmiany z poprzedniej sesji. Kliknij „Zapisz na stronie” albo „Odrzuć zmiany”.');
   });
 }
+var actMode=false;
+function setActMode(on){
+  actMode=on;
+  $('gcode').style.display=on?'':'none';
+  $('gateTxt').textContent=on?'Wpisz ID, kod z zaproszenia i ustaw hasło (min. 8 znaków).':'Zaloguj się swoim ID i hasłem.';
+  $('gateBtn').textContent=on?'Ustaw hasło i wejdź':'Wejdź';
+  $('actBtn').textContent=on?'Mam już konto – zaloguj się':'Pierwsze logowanie – mam kod z zaproszenia';
+  $('gateMsg').textContent='';
+}
+function saveToken(tok){ try{ sessionStorage.setItem(OK,tok); }catch(e){} }
+$('actBtn').addEventListener('click',function(){ setActMode(!actMode); });
 $('gateBtn').addEventListener('click',function(){
-  var p=$('pw').value; if(!p){ $('gateMsg').textContent='Wpisz hasło.'; return; }
+  var id=$('gid').value.trim(), p=$('pw').value, code=$('gcode').value.trim();
+  if(!id && !actMode){
+    // stary sposób: samo hasło właściciela
+    if(!p){ $('gateMsg').textContent='Wpisz hasło.'; return; }
+    $('gateMsg').textContent='Sprawdzam…';
+    fetch(API+'auth',{method:'POST',headers:{'x-admin-pass':p}})
+      .then(function(r){ if(r.ok){ saveToken(p); $('gateMsg').textContent=''; openApp(); } else if(r.status===401){ $('gateMsg').textContent='Złe hasło.'; } else { $('gateMsg').textContent='Serwer nie odpowiada poprawnie (błąd '+r.status+').'; } })
+      .catch(function(){ $('gateMsg').textContent='Brak połączenia z serwerem.'; });
+    return;
+  }
+  if(!id){ $('gateMsg').textContent='Wpisz ID.'; return; }
+  if(!p){ $('gateMsg').textContent='Wpisz hasło.'; return; }
+  if(actMode && !code){ $('gateMsg').textContent='Wpisz kod z zaproszenia.'; return; }
   $('gateMsg').textContent='Sprawdzam…';
-  fetch(API+'auth',{method:'POST',headers:{'x-admin-pass':p}})
-    .then(function(r){
-      if(r.ok){ try{ sessionStorage.setItem(OK,p); }catch(e){} $('gateMsg').textContent=''; openApp(); }
-      else if(r.status===401){ $('gateMsg').textContent='Złe hasło.'; }
-      else { $('gateMsg').textContent='Serwer nie odpowiada poprawnie (błąd '+r.status+'). Sprawdź ustawienia serwera.'; }
+  var body=actMode?{action:'activate',id:id,code:code,password:p}:{action:'login',id:id,password:p};
+  fetch(API+'auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); })
+    .then(function(res){
+      if(res.ok && res.j.token){ saveToken(res.j.token); $('gateMsg').textContent=''; $('pw').value=''; openApp(); }
+      else { $('gateMsg').textContent=(res.j&&res.j.error)||('Błąd '+res.status); }
     })
     .catch(function(){ $('gateMsg').textContent='Brak połączenia z serwerem.'; });
 });

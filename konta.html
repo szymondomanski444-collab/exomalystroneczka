@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Konta administratorów</title>
+<style>
+  :root{color-scheme:dark;--bg:#000;--card:#121212;--line:#2c2c2c;--fg:#f2f2f2;--mute:#9a9a9a;--glow:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px max(16px,env(safe-area-inset-left,0px)) 48px max(16px,env(safe-area-inset-right,0px))}
+  main{max-width:640px;margin:0 auto;display:grid;gap:20px}
+  h1{font-size:1.3rem;margin:0}
+  .card{background:linear-gradient(180deg,#121212,#0a0a0a);border:1px solid var(--line);border-radius:18px;padding:20px}
+  h2{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 14px}
+  input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#0a0a0a;color:var(--fg);font:inherit}
+  button{font:inherit;cursor:pointer;border-radius:999px;padding:9px 16px;border:1px solid var(--line);background:transparent;color:var(--fg)}
+  button.primary{background:var(--glow);color:#000;border-color:var(--glow);font-weight:700}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .row input{flex:1 1 180px}
+  table{width:100%;border-collapse:collapse}
+  td{padding:10px 0;border-bottom:1px solid #1c1c1c;vertical-align:middle}
+  td.id{font-family:ui-monospace,Consolas,monospace;letter-spacing:.05em}
+  .pill{display:inline-block;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--mute)}
+  .pill.on{color:var(--fg);border-color:#555}
+  .secret{margin-top:14px;border:1px dashed #555;border-radius:12px;padding:14px;font-family:ui-monospace,Consolas,monospace}
+  .muted{color:var(--mute);font-size:.85rem}
+  .err{color:#ff8a8a;min-height:1.2em;font-size:.9rem}
+  .hidden{display:none!important}
+  @media (max-width:520px){ td.act{text-align:right} }
+</style>
+</head>
+<body>
+<main>
+  <h1>Konta administratorów</h1>
+
+  <section class="card" id="ownerBox">
+    <h2>Dostęp właściciela</h2>
+    <div class="row">
+      <input type="password" id="ownerPw" placeholder="Hasło właściciela" autocomplete="current-password">
+      <button class="primary" id="ownerBtn" type="button">Wejdź</button>
+    </div>
+    <div class="err" id="ownerErr"></div>
+  </section>
+
+  <section class="card hidden" id="panel">
+    <h2>Zaproś administratora</h2>
+    <div class="row">
+      <input id="invName" placeholder="Imię / pseudonim (np. Kuba)" maxlength="60">
+      <button class="primary" id="invBtn" type="button">Wygeneruj ID i kod</button>
+    </div>
+    <div class="secret hidden" id="secret"></div>
+    <p class="muted">Kod pokazuje się tylko raz. Przekaż administratorowi ID i kod osobiście. Ważny 7 dni. Potem sam ustawia hasło na stronie logowania.</p>
+    <div class="err" id="invErr"></div>
+  </section>
+
+  <section class="card hidden" id="listBox">
+    <h2>Konta</h2>
+    <table><tbody id="rows"></tbody></table>
+    <div class="err" id="listErr"></div>
+  </section>
+</main>
+<script>
+(function(){
+  var API='/api/auth', KEY='exo_owner';
+  function $(id){ return document.getElementById(id); }
+  function owner(){ try{ return sessionStorage.getItem(KEY)||''; }catch(e){ return ''; } }
+  function call(body){
+    return fetch(API,{method:'POST',headers:{'content-type':'application/json','x-admin-pass':owner()},body:JSON.stringify(body)})
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); });
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function showPanel(){ $('panel').classList.remove('hidden'); $('listBox').classList.remove('hidden'); $('ownerBox').classList.add('hidden'); load(); }
+  function load(){
+    $('listErr').textContent='';
+    call({action:'list'}).then(function(res){
+      if(!res.ok){ $('listErr').textContent=res.j.error||'Błąd'; return; }
+      var rows=res.j.admins||[];
+      $('rows').innerHTML=rows.length?rows.map(function(a){
+        return '<tr><td><b>'+esc(a.name||'—')+'</b><div class="muted">'+esc(a.createdAt?a.createdAt.slice(0,10):'')+'</div></td>'+
+          '<td class="id">'+esc(a.id)+'</td>'+
+          '<td><span class="pill'+(a.status==='active'?' on':'')+'">'+(a.status==='active'?'aktywny':'zaproszony')+'</span></td>'+
+          '<td class="act"><button data-rm="'+esc(a.id)+'" type="button">Usuń</button></td></tr>';
+      }).join(''):'<tr><td class="muted">Brak kont.</td></tr>';
+    }).catch(function(){ $('listErr').textContent='Brak połączenia z serwerem.'; });
+  }
+  $('ownerBtn').addEventListener('click',function(){
+    var p=$('ownerPw').value; if(!p){ $('ownerErr').textContent='Wpisz hasło.'; return; }
+    try{ sessionStorage.setItem(KEY,p); }catch(e){}
+    call({action:'list'}).then(function(res){
+      if(res.ok){ $('ownerErr').textContent=''; showPanel(); }
+      else { try{ sessionStorage.removeItem(KEY); }catch(e){} $('ownerErr').textContent=res.status===401?'Złe hasło.':(res.j.error||'Błąd'); }
+    }).catch(function(){ $('ownerErr').textContent='Brak połączenia z serwerem.'; });
+  });
+  $('invBtn').addEventListener('click',function(){
+    var name=$('invName').value.trim();
+    $('invErr').textContent='';
+    call({action:'invite',name:name}).then(function(res){
+      if(!res.ok){ $('invErr').textContent=res.j.error||'Błąd'; return; }
+      var s=$('secret');
+      s.innerHTML='<div class="muted">ID</div><div><b>'+esc(res.j.id)+'</b></div><div class="muted" style="margin-top:8px">Kod (jednorazowy)</div><div><b>'+esc(res.j.code)+'</b></div>';
+      s.classList.remove('hidden');
+      $('invName').value='';
+      load();
+    }).catch(function(){ $('invErr').textContent='Brak połączenia z serwerem.'; });
+  });
+  $('rows').addEventListener('click',function(e){
+    var id=e.target.getAttribute('data-rm'); if(!id) return;
+    if(!confirm('Usunąć konto '+id+'?')) return;
+    call({action:'remove',id:id}).then(function(res){
+      if(!res.ok) $('listErr').textContent=res.j.error||'Błąd'; else load();
+    });
+  });
+  if(owner()){ call({action:'list'}).then(function(res){ if(res.ok) showPanel(); else { try{ sessionStorage.removeItem(KEY); }catch(e){} } }); }
+})();
+</script>
+</body>
+</html>
