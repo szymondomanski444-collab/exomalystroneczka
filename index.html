@@ -230,6 +230,18 @@ h1.mark { margin: 18px 0 16px; font-family: var(--f-display); font-weight: 300; 
 .accbox .go{width:100%;margin-top:14px;padding:12px;border-radius:12px;border:0;background:#fff;color:#000;font:inherit;font-weight:700;cursor:pointer}
 .accbox .msg{min-height:1.3em;margin-top:12px;font-size:.88rem;color:var(--muted)}
 .accbox .msg.bad{color:#ff8a8a}
+.accbox textarea,.accbox select{width:100%;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#0a0a0a;color:var(--fg);font:inherit;font-size:.92rem}
+.accbox textarea{resize:vertical;min-height:72px}
+.accbox .pedit{margin-top:18px;border-top:1px solid #1c1c1c;padding-top:16px}
+.accbox .pedit h4{margin:0 0 10px;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.accbox .pbanner{height:84px;border-radius:14px;border:1px solid var(--line);background:#0a0a0a center/cover no-repeat}
+.accbox .prow{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.accbox .prow button,.accbox .pbtn{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
+.accbox .pav{width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:#0a0a0a center/cover no-repeat;display:grid;place-items:center;font-weight:700;font-size:1.1rem}
+.accbox .plab{display:block;margin-top:12px;font-size:.82rem;color:var(--muted)}
+.accbox .pcount{display:block;text-align:right;color:var(--muted);font-size:.75rem;margin-top:4px}
+.accbox .pedit .go{margin-top:14px}
+.accbox .pnote{color:var(--muted);font-size:.88rem;margin:8px 0 0}
 .accbox .idbig{font-family:ui-monospace,Consolas,monospace;font-size:1.5rem;font-weight:700;letter-spacing:.08em;border:1px dashed #555;border-radius:14px;padding:14px;text-align:center;margin:10px 0}
 .accbox .kv{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #1c1c1c;font-size:.92rem}
 .accbox .kv span:first-child{color:var(--muted)}
@@ -1067,17 +1079,101 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
     });
     var f=document.getElementById('aNick'); if(f && msgText==='') f.focus();
   }
+  var THEMES=[['mono','Czarny'],['ember','Ognisty'],['ice','Lodowy'],['violet','Fioletowy'],['moss','Zielony']];
+  var pDraft={bio:'',theme:'mono',avatar:'',banner:''};
+  var pAv, pBan; // undefined = bez zmian, '' = usuń, data URL = nowy obraz
+  // Zmniejsza i przycina obraz do kwadratu/banera, koduje jako JPEG w limicie rozmiaru
+  function squash(file,w,h,maxLen,cb){
+    var img=new Image(), url=URL.createObjectURL(file);
+    img.onload=function(){
+      URL.revokeObjectURL(url);
+      var c=document.createElement('canvas'); c.width=w; c.height=h;
+      var x=c.getContext('2d'); x.fillStyle='#000'; x.fillRect(0,0,w,h);
+      var s=Math.max(w/img.width,h/img.height), dw=img.width*s, dh=img.height*s;
+      x.drawImage(img,(w-dw)/2,(h-dh)/2,dw,dh);
+      var out='', q=0.85;
+      for(var i=0;i<5;i++){ out=c.toDataURL('image/jpeg',q); if(out.length<=maxLen) return cb(out); q-=0.15; }
+      cb(null);
+    };
+    img.onerror=function(){ URL.revokeObjectURL(url); cb(null); };
+    img.src=url;
+  }
+  function setBg(el,src){ if(el) el.style.backgroundImage=src?'url("'+src+'")':''; }
+  function syncDraft(){
+    var bio=document.getElementById('pBio'), th=document.getElementById('pTheme');
+    if(bio) pDraft.bio=bio.value;
+    if(th) pDraft.theme=th.value;
+  }
+  function drawEditor(msgText){
+    var box=document.getElementById('pEdit'); if(!box) return;
+    syncDraft();
+    var av=pAv!==undefined?pAv:pDraft.avatar, bn=pBan!==undefined?pBan:pDraft.banner;
+    box.innerHTML=
+      '<h4>Edytuj profil</h4>'+
+      '<div class="pbanner" id="pBanPrev"></div>'+
+      '<div class="prow"><label class="pbtn">Zmień baner<input type="file" id="pBanF" accept="image/*" hidden></label>'+(bn?'<button type="button" id="pBanX">Usuń baner</button>':'')+'</div>'+
+      '<div class="prow"><div class="pav" id="pAvPrev">'+(av?'':esc2((user.nick||'?').charAt(0).toUpperCase()))+'</div>'+
+        '<label class="pbtn">Zmień awatar<input type="file" id="pAvF" accept="image/*" hidden></label>'+(av?'<button type="button" id="pAvX">Usuń</button>':'')+'</div>'+
+      '<label class="plab">Opis (do 200 znaków)<textarea id="pBio" maxlength="200" rows="3"></textarea></label>'+
+      '<span class="pcount"><span id="pCnt">0</span>/200</span>'+
+      '<label class="plab">Motyw profilu<select id="pTheme">'+THEMES.map(function(t){ return '<option value="'+t[0]+'">'+t[1]+'</option>'; }).join('')+'</select></label>'+
+      '<button class="go" id="pSave" type="button">Zapisz profil</button>'+
+      '<div class="msg" id="pMsg">'+esc2(msgText||'')+'</div>';
+    document.getElementById('pBio').value=pDraft.bio||'';
+    document.getElementById('pTheme').value=pDraft.theme||'mono';
+    document.getElementById('pCnt').textContent=(pDraft.bio||'').length;
+    setBg(document.getElementById('pBanPrev'),bn);
+    setBg(document.getElementById('pAvPrev'),av);
+    function msg(t,bad){ var m=document.getElementById('pMsg'); m.className=bad?'msg bad':'msg'; m.textContent=t; }
+    document.getElementById('pBio').addEventListener('input',function(){ document.getElementById('pCnt').textContent=this.value.length; });
+    document.getElementById('pBanF').addEventListener('change',function(){
+      var f=this.files&&this.files[0]; if(!f) return;
+      squash(f,1200,300,320*1024,function(d){ if(!d){ msg('Baner jest za duży. Wybierz mniejszy obraz.',true); return; } pBan=d; drawEditor('Baner gotowy. Zapisz profil, żeby go zachować.'); });
+    });
+    document.getElementById('pAvF').addEventListener('change',function(){
+      var f=this.files&&this.files[0]; if(!f) return;
+      squash(f,256,256,150*1024,function(d){ if(!d){ msg('Awatar jest za duży. Wybierz mniejszy obraz.',true); return; } pAv=d; drawEditor('Awatar gotowy. Zapisz profil, żeby go zachować.'); });
+    });
+    var bx=document.getElementById('pBanX'); if(bx) bx.addEventListener('click',function(){ pBan=''; drawEditor('Baner usunięty. Zapisz profil.'); });
+    var ax=document.getElementById('pAvX'); if(ax) ax.addEventListener('click',function(){ pAv=''; drawEditor('Awatar usunięty. Zapisz profil.'); });
+    document.getElementById('pSave').addEventListener('click',function(){
+      var t=tok(); syncDraft();
+      if(!t){ msg('Zaloguj się ponownie.',true); return; }
+      var req={token:t,bio:pDraft.bio,theme:pDraft.theme};
+      if(pAv!==undefined) req.avatar=pAv;
+      if(pBan!==undefined) req.banner=pBan;
+      msg('Zapisuję…',false);
+      api2('POST',req).then(function(res){
+        if(!res.ok){ msg(res.status===401?'Sesja wygasła. Zaloguj się ponownie.':(res.j.error||'Nie udało się zapisać.'),true); return; }
+        pDraft=res.j.profile; pAv=undefined; pBan=undefined;
+        drawEditor('Zapisano.');
+      }).catch(function(){ msg('Brak połączenia z serwerem.',true); });
+    });
+  }
+  function api2(method,b){
+    var opt={method:method,headers:{}};
+    if(method==='POST'){ opt.headers['content-type']='application/json'; opt.body=JSON.stringify(b); }
+    return fetch('/api/profile'+(method==='GET'?'?u='+encodeURIComponent(b):''),opt)
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); });
+  }
   function profileView(){
     var adm=user&&user.role==='admin';
+    pAv=undefined; pBan=undefined;
     body.innerHTML=
       '<h3>Twój profil</h3>'+
       '<div class="kv"><span>Nick</span><span><b>'+esc2(user.nick)+'</b></span></div>'+
       '<div class="kv"><span>Rola</span><span>'+(adm?'administrator':'użytkownik')+'</span></div>'+
+      '<div class="pedit" id="pEdit"><p class="pnote">Wczytywanie profilu…</p></div>'+
       '<div class="sec">'+
+        '<a href="profil.html?u='+encodeURIComponent(user.nick)+'">Zobacz mój profil</a>'+
         (adm?'<a href="admin.html">Przejdź do panelu</a>':'')+
         '<button type="button" id="aOut">Wyloguj</button>'+
       '</div>';
     document.getElementById('aOut').addEventListener('click',function(){ setTok(''); user=null; paint(); close(); });
+    api2('GET',user.nick).then(function(res){
+      if(!res.ok) throw new Error('x');
+      pDraft=res.j; drawEditor();
+    }).catch(function(){ var e=document.getElementById('pEdit'); if(e) e.innerHTML='<p class="pnote">Nie udało się wczytać profilu.</p>'; });
   }
   function refresh(){
     var t=tok();
