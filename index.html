@@ -242,6 +242,11 @@ h1.mark { margin: 18px 0 16px; font-family: var(--f-display); font-weight: 300; 
 .accbox .pcount{display:block;text-align:right;color:var(--muted);font-size:.75rem;margin-top:4px}
 .accbox .pedit .go{margin-top:14px}
 .accbox .pnote{color:var(--muted);font-size:.88rem;margin:8px 0 0}
+.accbox .pvrow{margin-top:14px}
+.accbox .pvnick{font-size:1.05rem}
+.accbox .pbio{color:var(--fg);white-space:pre-wrap;word-break:break-word;margin:14px 0 0}
+.accbox .pbio.empty{color:var(--muted);font-style:italic}
+.accbox .pcancel{width:100%;margin-top:8px;padding:11px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
 .accbox .idbig{font-family:ui-monospace,Consolas,monospace;font-size:1.5rem;font-weight:700;letter-spacing:.08em;border:1px dashed #555;border-radius:14px;padding:14px;text-align:center;margin:10px 0}
 .accbox .kv{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #1c1c1c;font-size:.92rem}
 .accbox .kv span:first-child{color:var(--muted)}
@@ -1099,14 +1104,36 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
     img.src=url;
   }
   function setBg(el,src){ if(el) el.style.backgroundImage=src?'url("'+src+'")':''; }
-  function syncDraft(){
+  // wartości z formularza, a gdy go nie ma - zapisany profil
+  function cur(){
     var bio=document.getElementById('pBio'), th=document.getElementById('pTheme');
-    if(bio) pDraft.bio=bio.value;
-    if(th) pDraft.theme=th.value;
+    return {bio:bio?bio.value:(pDraft.bio||''), theme:th?th.value:(pDraft.theme||'mono')};
   }
-  function drawEditor(msgText){
+  function api2(method,b){
+    var opt={method:method,headers:{}};
+    if(method==='POST'){ opt.headers['content-type']='application/json'; opt.body=JSON.stringify(b); }
+    return fetch('/api/profile'+(method==='GET'?'?u='+encodeURIComponent(b):''),opt)
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); });
+  }
+  // widok profilu (domyślnie)
+  function showView(note){
     var box=document.getElementById('pEdit'); if(!box) return;
-    syncDraft();
+    var p=pDraft, nm=(THEMES.filter(function(t){ return t[0]===p.theme; })[0]||THEMES[0])[1];
+    box.innerHTML=
+      '<div class="pbanner" id="pBanPrev"></div>'+
+      '<div class="prow pvrow"><div class="pav" id="pAvPrev">'+(p.avatar?'':esc2((user.nick||'?').charAt(0).toUpperCase()))+'</div>'+
+        '<div><b class="pvnick">'+esc2(user.nick)+'</b><div class="pnote">Motyw: '+esc2(nm)+'</div></div></div>'+
+      '<p class="pbio'+(p.bio?'':' empty')+'">'+(p.bio?esc2(p.bio):'Nie dodano jeszcze opisu.')+'</p>'+
+      '<button class="go" id="pEditBtn" type="button">Edytuj profil</button>'+
+      (note?'<div class="msg">'+esc2(note)+'</div>':'');
+    setBg(document.getElementById('pBanPrev'),p.banner);
+    setBg(document.getElementById('pAvPrev'),p.avatar);
+    document.getElementById('pEditBtn').addEventListener('click',function(){ pAv=undefined; pBan=undefined; drawEditor(); });
+  }
+  // formularz edycji
+  function drawEditor(note){
+    var box=document.getElementById('pEdit'); if(!box) return;
+    var c=cur();
     var av=pAv!==undefined?pAv:pDraft.avatar, bn=pBan!==undefined?pBan:pDraft.banner;
     box.innerHTML=
       '<h4>Edytuj profil</h4>'+
@@ -1118,10 +1145,11 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
       '<span class="pcount"><span id="pCnt">0</span>/200</span>'+
       '<label class="plab">Motyw profilu<select id="pTheme">'+THEMES.map(function(t){ return '<option value="'+t[0]+'">'+t[1]+'</option>'; }).join('')+'</select></label>'+
       '<button class="go" id="pSave" type="button">Zapisz profil</button>'+
-      '<div class="msg" id="pMsg">'+esc2(msgText||'')+'</div>';
-    document.getElementById('pBio').value=pDraft.bio||'';
-    document.getElementById('pTheme').value=pDraft.theme||'mono';
-    document.getElementById('pCnt').textContent=(pDraft.bio||'').length;
+      '<button class="pcancel" id="pCancel" type="button">Anuluj</button>'+
+      '<div class="msg" id="pMsg">'+esc2(note||'')+'</div>';
+    document.getElementById('pBio').value=c.bio;
+    document.getElementById('pTheme').value=c.theme;
+    document.getElementById('pCnt').textContent=c.bio.length;
     setBg(document.getElementById('pBanPrev'),bn);
     setBg(document.getElementById('pAvPrev'),av);
     function msg(t,bad){ var m=document.getElementById('pMsg'); m.className=bad?'msg bad':'msg'; m.textContent=t; }
@@ -1136,43 +1164,37 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
     });
     var bx=document.getElementById('pBanX'); if(bx) bx.addEventListener('click',function(){ pBan=''; drawEditor('Baner usunięty. Zapisz profil.'); });
     var ax=document.getElementById('pAvX'); if(ax) ax.addEventListener('click',function(){ pAv=''; drawEditor('Awatar usunięty. Zapisz profil.'); });
+    document.getElementById('pCancel').addEventListener('click',function(){ pAv=undefined; pBan=undefined; showView(); });
     document.getElementById('pSave').addEventListener('click',function(){
-      var t=tok(); syncDraft();
+      var t=tok(), c2=cur();
       if(!t){ msg('Zaloguj się ponownie.',true); return; }
-      var req={token:t,bio:pDraft.bio,theme:pDraft.theme};
+      var req={token:t,bio:c2.bio,theme:c2.theme};
       if(pAv!==undefined) req.avatar=pAv;
       if(pBan!==undefined) req.banner=pBan;
       msg('Zapisuję…',false);
       api2('POST',req).then(function(res){
         if(!res.ok){ msg(res.status===401?'Sesja wygasła. Zaloguj się ponownie.':(res.j.error||'Nie udało się zapisać.'),true); return; }
         pDraft=res.j.profile; pAv=undefined; pBan=undefined;
-        drawEditor('Zapisano.');
+        showView('Zapisano.');
       }).catch(function(){ msg('Brak połączenia z serwerem.',true); });
     });
-  }
-  function api2(method,b){
-    var opt={method:method,headers:{}};
-    if(method==='POST'){ opt.headers['content-type']='application/json'; opt.body=JSON.stringify(b); }
-    return fetch('/api/profile'+(method==='GET'?'?u='+encodeURIComponent(b):''),opt)
-      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); });
   }
   function profileView(){
     var adm=user&&user.role==='admin';
     pAv=undefined; pBan=undefined;
     body.innerHTML=
       '<h3>Twój profil</h3>'+
-      '<div class="kv"><span>Nick</span><span><b>'+esc2(user.nick)+'</b></span></div>'+
       '<div class="kv"><span>Rola</span><span>'+(adm?'administrator':'użytkownik')+'</span></div>'+
       '<div class="pedit" id="pEdit"><p class="pnote">Wczytywanie profilu…</p></div>'+
       '<div class="sec">'+
-        '<a href="profil.html?u='+encodeURIComponent(user.nick)+'">Zobacz mój profil</a>'+
+        '<a href="profil.html?u='+encodeURIComponent(user.nick)+'">Zobacz na stronie</a>'+
         (adm?'<a href="admin.html">Przejdź do panelu</a>':'')+
         '<button type="button" id="aOut">Wyloguj</button>'+
       '</div>';
     document.getElementById('aOut').addEventListener('click',function(){ setTok(''); user=null; paint(); close(); });
     api2('GET',user.nick).then(function(res){
       if(!res.ok) throw new Error('x');
-      pDraft=res.j; drawEditor();
+      pDraft=res.j; showView();
     }).catch(function(){ var e=document.getElementById('pEdit'); if(e) e.innerHTML='<p class="pnote">Nie udało się wczytać profilu.</p>'; });
   }
   function refresh(){
