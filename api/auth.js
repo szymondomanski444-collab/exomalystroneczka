@@ -52,6 +52,13 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, id: acc.id, role: acc.role || 'user', token: L.signToken(acc.id) });
     }
 
+    // Kto jest zalogowany (token z localStorage)
+    if (action === 'me') {
+      const acc = await L.verifyToken(String(body.token || ''));
+      if (!acc) return res.status(401).json({ error: 'Nie jesteś zalogowany' });
+      return res.status(200).json({ ok: true, id: acc.id, name: acc.name || '', role: acc.role || 'user' });
+    }
+
     // Sprawdzenie dostępu do panelu (nagłówek x-admin-pass = hasło właściciela albo token admina)
     const who = await L.authorize(req);
     if (!who) return res.status(401).json({ error: 'Brak uprawnień administratora' });
