@@ -1263,8 +1263,13 @@ hero.addEventListener('pointermove',function(e){
 if(window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches){
   document.documentElement.classList.add('c2on');
   var dot=$('c2dot'), ring=$('c2ring'), mx=0, my=0, rx=0, ry=0;
-  ring.style.opacity='0';
-  window.addEventListener('pointermove',function(e){ ring.style.opacity=''; mx=e.clientX; my=e.clientY; dot.style.transform='translate3d('+mx+'px,'+my+'px,0)'; });
+  ring.style.opacity='0'; dot.style.opacity='0';
+  var cursorStarted=false;
+  window.addEventListener('pointermove',function(e){
+    mx=e.clientX; my=e.clientY;
+    if(!cursorStarted){ cursorStarted=true; rx=mx; ry=my; ring.style.transition='none'; ring.style.transform='translate3d('+rx+'px,'+ry+'px,0)'; requestAnimationFrame(function(){ ring.style.transition=''; }); ring.style.opacity=''; dot.style.opacity=''; }
+    dot.style.transform='translate3d('+mx+'px,'+my+'px,0)';
+  });
   (function loop(){ rx+=(mx-rx)*0.18; ry+=(my-ry)*0.18; ring.style.transform='translate3d('+rx+'px,'+ry+'px,0)'; requestAnimationFrame(loop); })();
   document.addEventListener('pointerover',function(e){
     ring.classList.toggle('big',!!(e.target.closest && e.target.closest('a,button,.pl,.pt,.nw2,.row2,.stat')));
