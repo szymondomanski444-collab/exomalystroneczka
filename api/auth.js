@@ -1,14 +1,25 @@
 const crypto = require('crypto');
 const L = require('../lib/admins.js');
 
+const NICK_RE = /^[\p{L}\p{N}_\- ]{2,20}$/u;
+
 function readBody(req) {
   let b = req.body;
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = null; } }
   return b && typeof b === 'object' ? b : {};
 }
 
+function normNick(s) {
+  return String(s || '').trim().replace(/\s+/g, ' ');
+}
+
+function findByNick(store, nick) {
+  const n = normNick(nick).toLowerCase();
+  return store.admins.find((x) => (x.name || '').toLowerCase() === n && x.status === 'active') || null;
+}
+
 function publicAccount(a) {
-  return { id: a.id, name: a.name || '', role: a.role || 'user', createdAt: a.createdAt || null };
+  return { nick: a.name || '', role: a.role || 'user', createdAt: a.createdAt || null };
 }
 
 module.exports = async (req, res) => {
@@ -22,46 +33,48 @@ module.exports = async (req, res) => {
   const action = body.action || '';
 
   try {
-    // Zakładanie konta – każdy może: dostaje swoje ID generowane przez stronę
+    // Zakładanie konta: nick + hasło (zwykłe konto, bez uprawnień)
     if (action === 'register') {
+      const nick = normNick(body.nick || body.name);
       const pw = String(body.password || '');
-      const name = String(body.name || '').trim().slice(0, 40);
+      if (!NICK_RE.test(nick)) return res.status(400).json({ error: 'Nick: 2–20 znaków (litery, cyfry, spacja, _ lub -)' });
       if (pw.length < 8) return res.status(400).json({ error: 'Hasło musi mieć co najmniej 8 znaków' });
       const store = await L.readStore();
-      let id = L.newId();
-      while (store.admins.some((x) => x.id === id)) id = L.newId();
+      if (store.admins.some((x) => (x.name || '').toLowerCase() === nick.toLowerCase())) {
+        return res.status(409).json({ error: 'Ten nick jest już zajęty' });
+      }
       const salt = crypto.randomBytes(16).toString('hex');
+      const id = L.newId();
       store.admins.push({
-        id, name, role: 'user', status: 'active',
+        id, name: nick, role: 'user', status: 'active',
         salt, hash: L.scryptHash(pw, salt),
         createdAt: new Date().toISOString(),
       });
       await L.writeStore(store);
-      return res.status(200).json({ ok: true, id, role: 'user', token: L.signToken(id) });
+      return res.status(200).json({ ok: true, nick, role: 'user', token: L.signToken(id) });
     }
 
-    // Logowanie ID + hasło (dla każdego zarejestrowanego konta)
+    // Logowanie: nick + hasło (bez względu na wielkość liter)
     if (action === 'login') {
-      const id = String(body.id || '').trim().toUpperCase();
       const pw = String(body.password || '');
       const store = await L.readStore();
-      const acc = store.admins.find((x) => x.id === id && x.status === 'active');
+      const acc = findByNick(store, body.nick || body.name);
       if (!acc || !L.safeEqualHex(L.scryptHash(pw, acc.salt), acc.hash)) {
-        return res.status(401).json({ error: 'Złe ID lub hasło' });
+        return res.status(401).json({ error: 'Zły nick lub hasło' });
       }
-      return res.status(200).json({ ok: true, id: acc.id, role: acc.role || 'user', token: L.signToken(acc.id) });
+      return res.status(200).json({ ok: true, nick: acc.name, role: acc.role || 'user', token: L.signToken(acc.id) });
     }
 
-    // Kto jest zalogowany (token z localStorage)
+    // Kto jest zalogowany (token z przeglądarki)
     if (action === 'me') {
       const acc = await L.verifyToken(String(body.token || ''));
       if (!acc) return res.status(401).json({ error: 'Nie jesteś zalogowany' });
-      return res.status(200).json({ ok: true, id: acc.id, name: acc.name || '', role: acc.role || 'user' });
+      return res.status(200).json({ ok: true, nick: acc.name || '', role: acc.role || 'user' });
     }
 
-    // Sprawdzenie dostępu do panelu (nagłówek x-admin-pass = hasło właściciela albo token admina)
+    // Dostęp do panelu: hasło właściciela w nagłówku albo token konta z rolą admina
     const who = await L.authorize(req);
-    if (!who) return res.status(401).json({ error: 'Brak uprawnień administratora' });
+    if (!who) return res.status(401).json({ error: 'Nie masz uprawnień administratora' });
     if (!action) return res.status(200).json({ ok: true, role: who === 'owner' ? 'owner' : 'admin' });
 
     // Dalej tylko właściciel
@@ -69,25 +82,23 @@ module.exports = async (req, res) => {
 
     if (action === 'list') {
       const store = await L.readStore();
-      return res.status(200).json({ accounts: store.admins.map(publicAccount) });
+      return res.status(200).json({ accounts: store.admins.filter((x) => x.status === 'active').map(publicAccount) });
     }
 
     if (action === 'grant' || action === 'revoke') {
-      const id = String(body.id || '').trim().toUpperCase();
       const store = await L.readStore();
-      const acc = store.admins.find((x) => x.id === id);
-      if (!acc) return res.status(404).json({ error: 'Nie ma takiego konta' });
+      const acc = findByNick(store, body.nick);
+      if (!acc) return res.status(404).json({ error: 'Nie ma takiego nicka' });
       acc.role = action === 'grant' ? 'admin' : 'user';
       await L.writeStore(store);
-      return res.status(200).json({ ok: true, id, role: acc.role });
+      return res.status(200).json({ ok: true, nick: acc.name, role: acc.role });
     }
 
     if (action === 'remove') {
-      const id = String(body.id || '').trim().toUpperCase();
       const store = await L.readStore();
-      const before = store.admins.length;
-      store.admins = store.admins.filter((x) => x.id !== id);
-      if (store.admins.length === before) return res.status(404).json({ error: 'Nie ma takiego konta' });
+      const acc = findByNick(store, body.nick);
+      if (!acc) return res.status(404).json({ error: 'Nie ma takiego nicka' });
+      store.admins = store.admins.filter((x) => x.id !== acc.id);
       await L.writeStore(store);
       return res.status(200).json({ ok: true });
     }

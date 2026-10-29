@@ -119,8 +119,8 @@ details.sec{margin-top:0}
 <div id="gate">
   <div class="box">
     <h1>Panel Exomaly</h1>
-    <p id="gateTxt">Zaloguj się swoim ID i hasłem.</p>
-    <input id="gid" placeholder="ID (np. EX-ABC123)" autocomplete="username" autocapitalize="characters">
+    <p id="gateTxt">Zaloguj się nickiem i hasłem.</p>
+    <input id="gid" placeholder="Nick" autocomplete="username">
     <input id="gcode" placeholder="Nick (opcjonalnie)" autocomplete="nickname" style="display:none">
     <input type="password" id="pw" placeholder="Hasło" autocomplete="current-password">
     <button class="primary" id="gateBtn" type="button">Wejdź</button>
@@ -396,10 +396,9 @@ function openApp(){
 var regMode=false;
 function setRegMode(on){
   regMode=on;
-  $('gid').style.display=on?'none':'';
-  $('gcode').style.display=on?'':'none';
-  $('gcode').placeholder='Nick (opcjonalnie)';
-  $('gateTxt').textContent=on?'Załóż konto. Dostaniesz swoje ID, po którym administrator nada Ci uprawnienia.':'Zaloguj się swoim ID i hasłem.';
+  $('gcode').style.display='none';
+  $('gid').placeholder='Nick';
+  $('gateTxt').textContent=on?'Załóż konto: podaj nick i hasło (min. 8 znaków).':'Zaloguj się nickiem i hasłem.';
   $('gateBtn').textContent=on?'Załóż konto':'Wejdź';
   $('actBtn').textContent=on?'Mam już konto – zaloguj się':'Nie mam konta – załóż je';
   $('gateMsg').textContent='';
@@ -407,8 +406,8 @@ function setRegMode(on){
 function saveToken(tok){ try{ sessionStorage.setItem(OK,tok); }catch(e){} }
 $('actBtn').addEventListener('click',function(){ setRegMode(!regMode); });
 $('gateBtn').addEventListener('click',function(){
-  var id=$('gid').value.trim(), p=$('pw').value, nick=$('gcode').value.trim();
-  if(!regMode && !id){
+  var nick=$('gid').value.trim(), p=$('pw').value;
+  if(!nick){
     // stary sposób: samo hasło właściciela
     if(!p){ $('gateMsg').textContent='Wpisz hasło.'; return; }
     $('gateMsg').textContent='Sprawdzam…';
@@ -417,23 +416,21 @@ $('gateBtn').addEventListener('click',function(){
       .catch(function(){ $('gateMsg').textContent='Brak połączenia z serwerem.'; });
     return;
   }
-  if(!regMode && !id){ $('gateMsg').textContent='Wpisz ID.'; return; }
   if(!p){ $('gateMsg').textContent='Wpisz hasło.'; return; }
   if(regMode && p.length<8){ $('gateMsg').textContent='Hasło musi mieć co najmniej 8 znaków.'; return; }
   $('gateMsg').textContent='Sprawdzam…';
-  var body=regMode?{action:'register',name:nick,password:p}:{action:'login',id:id,password:p};
+  var body=regMode?{action:'register',nick:nick,password:p}:{action:'login',nick:nick,password:p};
   fetch(API+'auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})
     .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); })
     .then(function(res){
       if(!res.ok || !res.j.token){ $('gateMsg').textContent=(res.j&&res.j.error)||('Błąd '+res.status); return; }
       if(regMode){
-        // konto założone: pokaż ID i przełącz na logowanie
-        $('gid').value=res.j.id; $('pw').value=''; setRegMode(false);
-        $('gateMsg').textContent='Twoje ID: '+res.j.id+' – zapisz je. Podaj je administratorowi, żeby nadał Ci uprawnienia. Teraz zaloguj się.';
+        $('pw').value=''; setRegMode(false);
+        $('gateMsg').textContent='Konto założone. Zaloguj się.';
         return;
       }
       if(res.j.role==='admin' || res.j.role==='owner'){ saveToken(res.j.token); $('gateMsg').textContent=''; $('pw').value=''; openApp(); }
-      else { $('gateMsg').textContent='Konto '+res.j.id+' nie ma uprawnień administratora. Podaj to ID administratorowi, żeby je nadał.'; }
+      else { $('gateMsg').textContent='Nie masz uprawnień administratora. Poproś właściciela, żeby je nadał.'; }
     })
     .catch(function(){ $('gateMsg').textContent='Brak połączenia z serwerem.'; });
 });

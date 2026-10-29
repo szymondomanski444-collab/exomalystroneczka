@@ -46,13 +46,13 @@
 
   <section class="card hidden" id="panel">
     <h2>Konta użytkowników</h2>
-    <p class="muted">Każdy, kto założy konto na stronie, dostaje swoje ID. Po tym ID nadajesz uprawnienia administratora.</p>
+    <p class="muted">Każdy może założyć konto na stronie. Administratora nadajesz po nicku (bez względu na wielkość liter).</p>
     <div class="row" style="margin-bottom:12px">
-      <input id="find" placeholder="Szukaj po ID lub nicku">
+      <input id="find" placeholder="Szukaj po nicku">
     </div>
     <div class="scroll">
       <table>
-        <thead><tr><th>Nick</th><th>ID</th><th>Rola</th><th></th></tr></thead>
+        <thead><tr><th>Nick</th><th>Rola</th><th></th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
@@ -73,17 +73,16 @@
   function showPanel(){ $('panel').classList.remove('hidden'); $('ownerBox').classList.add('hidden'); load(); }
   function render(){
     var q=$('find').value.trim().toLowerCase();
-    var list=accounts.filter(function(a){ return !q || a.id.toLowerCase().indexOf(q)>=0 || (a.name||'').toLowerCase().indexOf(q)>=0; });
+    var list=accounts.filter(function(a){ return !q || (a.nick||'').toLowerCase().indexOf(q)>=0; });
     $('rows').innerHTML=list.length?list.map(function(a){
-      var isAdm=a.role==='admin';
-      return '<tr><td>'+esc(a.name||'—')+'<div class="muted">'+esc(a.createdAt?a.createdAt.slice(0,10):'')+'</div></td>'+
-        '<td class="id">'+esc(a.id)+'</td>'+
+      var isAdm=a.role==='admin', nk=esc(a.nick);
+      return '<tr><td><b>'+nk+'</b><div class="muted">'+esc(a.createdAt?a.createdAt.slice(0,10):'')+'</div></td>'+
         '<td><span class="pill'+(isAdm?' adm':'')+'">'+(isAdm?'admin':'użytkownik')+'</span></td>'+
         '<td><div class="acts">'+
-          (isAdm?'<button data-act="revoke" data-id="'+esc(a.id)+'" type="button">Odbierz admina</button>':'<button class="primary" data-act="grant" data-id="'+esc(a.id)+'" type="button">Daj admina</button>')+
-          '<button data-act="remove" data-id="'+esc(a.id)+'" type="button">Usuń</button>'+
+          (isAdm?'<button data-act="revoke" data-nick="'+nk+'" type="button">Odbierz admina</button>':'<button class="primary" data-act="grant" data-nick="'+nk+'" type="button">Daj admina</button>')+
+          '<button data-act="remove" data-nick="'+nk+'" type="button">Usuń</button>'+
         '</div></td></tr>';
-    }).join(''):'<tr><td colspan="4" class="muted">Brak kont.</td></tr>';
+    }).join(''):'<tr><td colspan="3" class="muted">Brak kont.</td></tr>';
   }
   function load(){
     $('listErr').textContent='';
@@ -104,9 +103,9 @@
   });
   $('rows').addEventListener('click',function(e){
     var b=e.target.closest('button[data-act]'); if(!b) return;
-    var act=b.getAttribute('data-act'), id=b.getAttribute('data-id');
-    if(act==='remove' && !confirm('Usunąć konto '+id+'?')) return;
-    call({action:act,id:id}).then(function(res){
+    var act=b.getAttribute('data-act'), nick=b.getAttribute('data-nick');
+    if(act==='remove' && !confirm('Usunąć konto '+nick+'?')) return;
+    call({action:act,nick:nick}).then(function(res){
       if(!res.ok) $('listErr').textContent=res.j.error||'Błąd'; else load();
     });
   });

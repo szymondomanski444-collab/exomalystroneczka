@@ -1032,60 +1032,49 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
   function paint(){
     var mob=!!(mq&&mq.matches);
     btn.classList.toggle('icon',mob);
-    btn.setAttribute('aria-label',user?('Konto: '+(user.name||user.id)):'Zaloguj się');
-    if(mob){ btn.innerHTML=user?esc2(((user.name||user.id)||'?').charAt(0).toUpperCase()):PERSON; return; }
-    btn.textContent=user?((user.name||user.id)+(user.role==='admin'?' · admin':'')):'Zaloguj';
+    btn.setAttribute('aria-label',user?('Profil: '+user.nick):'Zaloguj się');
+    if(mob){ btn.innerHTML=user?esc2((user.nick||'?').charAt(0).toUpperCase()):PERSON; return; }
+    btn.textContent=user?(user.nick+(user.role==='admin'?' · admin':'')):'Zaloguj';
   }
   if(mq&&mq.addEventListener) mq.addEventListener('change',paint);
-  function open(html){ body.innerHTML=html; ov.hidden=false; document.body.style.overflow='hidden'; }
+  function open(){ ov.hidden=false; document.body.style.overflow='hidden'; }
   function close(){ ov.hidden=true; document.body.style.overflow=''; }
   function authView(mode, msgText){
     var reg=mode==='reg';
     body.innerHTML=
       '<h3>'+(reg?'Załóż konto':'Zaloguj się')+'</h3>'+
-      '<p>'+(reg?'Dostaniesz swoje ID. Zapisz je, administrator po nim nada uprawnienia.':'Wpisz swoje ID i hasło.')+'</p>'+
+      '<p>'+(reg?'Podaj nick i hasło. Administrator nada uprawnienia po nicku.':'Wpisz nick i hasło.')+'</p>'+
       '<div class="tabs"><button type="button" data-m="log" class="'+(!reg?'on':'')+'">Zaloguj</button><button type="button" data-m="reg" class="'+(reg?'on':'')+'">Załóż konto</button></div>'+
-      (reg?'<input id="aNick" placeholder="Nick (opcjonalnie)" maxlength="40" autocomplete="nickname">':'<input id="aId" placeholder="ID (np. EX-ABC123)" autocomplete="username" autocapitalize="characters">')+
+      '<input id="aNick" placeholder="Nick" maxlength="20" autocomplete="username">'+
       '<input id="aPw" type="password" placeholder="Hasło (min. 8 znaków)" autocomplete="'+(reg?'new-password':'current-password')+'">'+
       '<button class="go" id="aGo" type="button">'+(reg?'Załóż konto':'Wejdź')+'</button>'+
       '<div class="msg" id="aMsg">'+esc2(msgText||'')+'</div>';
     body.querySelectorAll('[data-m]').forEach(function(b){ b.addEventListener('click',function(){ authView(b.getAttribute('data-m'),''); }); });
     document.getElementById('aPw').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('aGo').click(); });
     document.getElementById('aGo').addEventListener('click',function(){
-      var pw=document.getElementById('aPw').value, msg=document.getElementById('aMsg');
+      var nick=document.getElementById('aNick').value.trim(), pw=document.getElementById('aPw').value, msg=document.getElementById('aMsg');
       msg.className='msg';
-      if(reg){
-        if(pw.length<8){ msg.className='msg bad'; msg.textContent='Hasło musi mieć co najmniej 8 znaków.'; return; }
-        msg.textContent='Zakładam konto…';
-        api({action:'register',name:document.getElementById('aNick').value.trim(),password:pw}).then(function(res){
-          if(!res.ok||!res.j.token){ msg.className='msg bad'; msg.textContent=res.j.error||'Błąd'; return; }
-          setTok(res.j.token); user={id:res.j.id,name:'',role:'user'}; paint();
-          body.innerHTML='<h3>Konto założone</h3><p>Twoje ID. Zapisz je, administrator po nim nada uprawnienia.</p><div class="idbig">'+esc2(res.j.id)+'</div><div class="sec"><button type="button" id="aDone">Przejdź do profilu</button></div>';
-          document.getElementById('aDone').addEventListener('click',profileView);
-        }).catch(function(){ msg.className='msg bad'; msg.textContent='Brak połączenia z serwerem.'; });
-      } else {
-        var id=document.getElementById('aId').value.trim();
-        if(!id){ msg.className='msg bad'; msg.textContent='Wpisz ID.'; return; }
-        if(!pw){ msg.className='msg bad'; msg.textContent='Wpisz hasło.'; return; }
-        msg.textContent='Sprawdzam…';
-        api({action:'login',id:id,password:pw}).then(function(res){
-          if(!res.ok||!res.j.token){ msg.className='msg bad'; msg.textContent=res.j.error||'Błąd'; return; }
-          setTok(res.j.token); user={id:res.j.id,name:'',role:res.j.role||'user'}; paint();
-          refresh().then(profileView);
-        }).catch(function(){ msg.className='msg bad'; msg.textContent='Brak połączenia z serwerem.'; });
-      }
+      if(!nick){ msg.className='msg bad'; msg.textContent='Wpisz nick.'; return; }
+      if(!pw){ msg.className='msg bad'; msg.textContent='Wpisz hasło.'; return; }
+      if(reg && pw.length<8){ msg.className='msg bad'; msg.textContent='Hasło musi mieć co najmniej 8 znaków.'; return; }
+      msg.textContent=reg?'Zakładam konto…':'Sprawdzam…';
+      api(reg?{action:'register',nick:nick,password:pw}:{action:'login',nick:nick,password:pw}).then(function(res){
+        if(!res.ok||!res.j.token){ msg.className='msg bad'; msg.textContent=res.j.error||'Błąd'; return; }
+        setTok(res.j.token);
+        user={nick:res.j.nick||nick,role:res.j.role||'user'}; paint();
+        profileView();
+      }).catch(function(){ msg.className='msg bad'; msg.textContent='Brak połączenia z serwerem.'; });
     });
-    if(msgText==='') { var f=document.getElementById(reg?'aNick':'aId'); if(f) f.focus(); }
+    var f=document.getElementById('aNick'); if(f && msgText==='') f.focus();
   }
   function profileView(){
     var adm=user&&user.role==='admin';
     body.innerHTML=
       '<h3>Twój profil</h3>'+
-      '<div class="kv"><span>ID</span><span><b>'+esc2(user.id)+'</b></span></div>'+
-      '<div class="kv"><span>Nick</span><span>'+esc2(user.name||'—')+'</span></div>'+
+      '<div class="kv"><span>Nick</span><span><b>'+esc2(user.nick)+'</b></span></div>'+
       '<div class="kv"><span>Rola</span><span>'+(adm?'administrator':'użytkownik')+'</span></div>'+
       '<div class="sec">'+
-        (adm?'<a href="admin.html">Przejdź do panelu</a>':'<p style="margin:0">Uprawnienia administratora nadaje właściciel po Twoim ID.</p>')+
+        (adm?'<a href="admin.html">Przejdź do panelu</a>':'')+
         '<button type="button" id="aOut">Wyloguj</button>'+
       '</div>';
     document.getElementById('aOut').addEventListener('click',function(){ setTok(''); user=null; paint(); close(); });
@@ -1094,12 +1083,12 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
     var t=tok();
     if(!t){ user=null; paint(); return Promise.resolve(); }
     return api({action:'me',token:t}).then(function(res){
-      if(res.ok){ user={id:res.j.id,name:res.j.name||'',role:res.j.role||'user'}; }
+      if(res.ok){ user={nick:res.j.nick||'',role:res.j.role||'user'}; }
       else { setTok(''); user=null; }
       paint();
     }).catch(function(){ paint(); });
   }
-  btn.addEventListener('click',function(){ if(user) profileView(); else authView('log',''); ov.hidden=false; document.body.style.overflow='hidden'; });
+  btn.addEventListener('click',function(){ open(); if(user) profileView(); else authView('log',''); });
   document.getElementById('accX').addEventListener('click',close);
   ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
   document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!ov.hidden) close(); });
