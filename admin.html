@@ -112,6 +112,9 @@ details.sec{margin-top:0}
 #pvwrap .pvbar select{width:auto}
 #pv{flex:1;width:100%;height:auto;min-height:0;border:0;border-radius:0;position:static;box-shadow:none;background:#000}
 @media (max-width:700px){#pvwrap{width:100%}.stabs{top:58px}}
+.photo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.pthumb{width:66px;height:70px;object-fit:cover;object-position:top center;border-radius:10px;border:1px solid var(--line);background:#0a0a0a}
+.nophoto{font-size:.8rem;color:var(--mute)}
 </style>
 </head>
 <body>
@@ -199,6 +202,23 @@ function normalize(o){
 }
 var base=null, S=null;
 var openSet={};
+// zdjęcie zawodnika: kadrowanie do 600x630 (proporcje kart na stronie), JPEG do 200 KB
+function photoData(file,cb){
+  var img=new Image(), url=URL.createObjectURL(file);
+  img.onload=function(){
+    URL.revokeObjectURL(url);
+    var W=600,H=630;
+    var c=document.createElement('canvas'); c.width=W; c.height=H;
+    var x=c.getContext('2d'); x.fillStyle='#000'; x.fillRect(0,0,W,H);
+    var sc=Math.max(W/img.width,H/img.height), dw=img.width*sc, dh=img.height*sc;
+    x.drawImage(img,(W-dw)/2,0,dw,dh);
+    var q=0.86, out='';
+    for(var i=0;i<6;i++){ out=c.toDataURL('image/jpeg',q); if(out.length<=200*1024) return cb(out); q-=0.12; }
+    cb(null);
+  };
+  img.onerror=function(){ URL.revokeObjectURL(url); cb(null); };
+  img.src=url;
+}
 function saveDraft(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} schedulePreview(); }
 function clearDraft(){ try{ localStorage.removeItem(KEY); }catch(e){} }
 function parseTerm(s){
@@ -222,8 +242,17 @@ function field(k,i,f,val){
   var v=val==null?'':val;
   var attrs=' data-k="'+k+'" data-i="'+i+'" data-f="'+f.n+'"';
   var isDate=(k==='terminarz' && f.n==='data');
+  if(f.n==='zdjecie' && /^data:/.test(String(v))){ return '<label class="fld"><span>'+esc(f.l)+'</span><input'+attrs+' value="" placeholder="Wgrane plikiem (wpisz link, aby zastąpić)"></label>'; }
   var input=f.area?'<textarea'+attrs+'>'+esc(v)+'</textarea>':isDate?'<input type="datetime-local"'+attrs+' value="'+esc(String(v).replace(' ','T'))+'">':'<input'+(f.num?' type="number" min="0" step="1"':'')+attrs+' value="'+esc(v)+'">';
   return '<label class="fld'+(f.area?' wide':'')+'"><span>'+esc(f.l)+'</span>'+input+'</label>';
+}
+var PHOTO_SECS=['skladGlowny','akademia'];
+function photoBlock(k,i,src,a){
+  return '<div class="photo">'+
+    (src?'<img class="pthumb" src="'+esc(src)+'" alt="">':'<span class="nophoto">Brak zdjęcia</span>')+
+    '<label class="filebtn">Wczytaj zdjęcie<input type="file" accept="image/*" hidden data-photo="'+k+'" data-i="'+i+'"></label>'+
+    (src?'<button type="button" class="danger" data-act="nophoto" '+a+'>Usuń zdjęcie</button>':'')+
+    '</div>';
 }
 function listHTML(sec){
   var arr=S[sec.k];
@@ -234,6 +263,7 @@ function listHTML(sec){
       '<button type="button" data-act="up" '+a+(i===0?' disabled':'')+'>↑</button>'+
       '<button type="button" data-act="down" '+a+(i===arr.length-1?' disabled':'')+'>↓</button>'+
       '<button type="button" class="danger" data-act="del" '+a+'>Usuń</button></div></div>'+
+      (PHOTO_SECS.indexOf(sec.k)>=0?photoBlock(sec.k,i,it.zdjecie,a):'')+
       '<div class="grid">'+sec.f.map(function(f){ return field(sec.k,i,f,it[f.n]); }).join('')+'</div></div>';
   }).join('');
 }
@@ -329,8 +359,21 @@ $('editor').addEventListener('click',function(e){
     if(!confirm('Usunąć z terminarza: '+(S.terminarz[idx].przeciwnik||'mecz')+'?')) return;
     S.terminarz.splice(idx,1);
   }
+  else if(act==='nophoto'){ S[k][i].zdjecie=''; }
   else return;
   saveDraft(); render(); status('Zmiany są w szkicu. Kliknij „Zapisz na stronie”, żeby były widoczne.');
+});
+
+$('editor').addEventListener('change',function(e){
+  var t=e.target; if(!t.hasAttribute('data-photo')) return;
+  var k=t.getAttribute('data-photo'), i=+t.getAttribute('data-i'), f=t.files&&t.files[0];
+  if(!f) return;
+  status('Przetwarzam zdjęcie…');
+  photoData(f,function(d){
+    if(!d){ status('Nie udało się przygotować tego zdjęcia. Wybierz inny plik (JPG, PNG lub WebP).','err'); return; }
+    S[k][i].zdjecie=d; saveDraft(); render();
+    status('Zdjęcie wgrane. Kliknij „Zapisz na stronie”, żeby było widoczne.');
+  });
 });
 
 $('save').addEventListener('click',function(){
