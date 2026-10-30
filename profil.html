@@ -97,6 +97,18 @@
 (function(){
   var THEME_ACC={mono:'#ffffff',ember:'#ff7a1a',ice:'#7fd3ff',violet:'#b388ff',moss:'#7fd16a'};
   var THEME_NAME={mono:'Czarny',ember:'Ognisty',ice:'Lodowy',violet:'Fioletowy',moss:'Zielony'};
+  // Losowe tło przy każdym wejściu: kolory i położenie dwóch poświat
+  (function randomBg(){
+    var pal=['255,122,26','127,211,255','179,136,255','127,209,106','255,255,255','255,90,130','90,150,255'];
+    function pick(){ return pal[Math.floor(Math.random()*pal.length)]; }
+    var a=pick(), b=pick();
+    var x1=Math.round(5+Math.random()*90), y1=Math.round(-15+Math.random()*50);
+    var x2=Math.round(5+Math.random()*90), y2=Math.round(55+Math.random()*50);
+    var s1=Math.round(620+Math.random()*420), s2=Math.round(520+Math.random()*380);
+    document.body.style.background=
+      'radial-gradient('+s1+'px '+Math.round(s1*0.6)+'px at '+x1+'% '+y1+'%, rgba('+a+',.2), transparent 70%),'+
+      'radial-gradient('+s2+'px '+Math.round(s2*0.6)+'px at '+x2+'% '+y2+'%, rgba('+b+',.13), transparent 70%),#000';
+  })();
   function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function safeImg(src){ return /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(src||'') ? src : ''; }
   function fmtDate(iso){
