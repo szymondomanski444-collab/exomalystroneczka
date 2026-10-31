@@ -65,16 +65,28 @@ module.exports = async (req, res) => {
     return r.json();
   };
 
+  // Budżet czasu: zwracamy to, co zdążyliśmy pobrać, zamiast czekać bez końca.
+  const started = Date.now();
+  const BUDGET_MS = 8000;
+  const BATCH = 10;
+
   try {
     const first = await fetchPage(1);
     const totalPages = Math.max(1, Math.min(maxPages, (first.pagination && first.pagination.totalPages) || 1));
-    const rest = [];
-    for (let n = 2; n <= totalPages; n += 5) {
-      const batch = [];
-      for (let k = n; k < Math.min(n + 5, totalPages + 1); k++) batch.push(fetchPage(k));
-      rest.push(...(await Promise.all(batch)));
+    const pages = [first];
+    let failedPages = 0;
+    let stoppedEarly = false;
+    const nums = [];
+    for (let n = 2; n <= totalPages; n++) nums.push(n);
+    for (let i = 0; i < nums.length; i += BATCH) {
+      if (Date.now() - started > BUDGET_MS) { stoppedEarly = true; break; }
+      const got = await Promise.allSettled(nums.slice(i, i + BATCH).map(fetchPage));
+      for (const g of got) {
+        if (g.status === 'fulfilled') pages.push(g.value);
+        else failedPages++;
+      }
     }
-    const pages = [first, ...rest];
+    const missingPages = totalPages - pages.length;
 
     const matches = [];
     let totalItems = 0;
@@ -92,6 +104,9 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       updated: new Date().toISOString(),
       pagesScanned: pages.length,
+      pagesTotal: totalPages,
+      pagesFailed: failedPages,
+      partial: stoppedEarly || failedPages > 0 || missingPages > 0,
       itemsScanned: totalItems,
       matches,
     });
