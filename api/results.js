@@ -3,7 +3,7 @@
 // Zmienne: STARTERLEAGUE_API_KEY (wymagana), STARTERLEAGUE_API_BASE (opcjonalna),
 // STARTERLEAGUE_KEY_HEADER (opcjonalna, domyślnie Authorization z Bearer),
 // STARTERLEAGUE_TEAM_NAME (opcjonalna, domyślnie wyszukiwanie po "exomaly"),
-// STARTERLEAGUE_MAX_PAGES (opcjonalna, domyślnie 50).
+// STARTERLEAGUE_MAX_PAGES (opcjonalna, domyślnie 300).
 
 const DEFAULT_BASE = 'https://starterleague.pl/api/partners';
 const DEFAULT_TEAM_PATTERN = /exomaly/i;
@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
   const pattern = process.env.STARTERLEAGUE_TEAM_NAME
     ? new RegExp(process.env.STARTERLEAGUE_TEAM_NAME.replace(/[^\x20-\x7E]/g, ''), 'i')
     : DEFAULT_TEAM_PATTERN;
-  const maxPages = Math.max(1, Math.min(50, parseInt(process.env.STARTERLEAGUE_MAX_PAGES, 10) || 50));
+  const maxPages = Math.max(1, Math.min(300, parseInt(process.env.STARTERLEAGUE_MAX_PAGES, 10) || 300));
   const headerName = (process.env.STARTERLEAGUE_KEY_HEADER || 'Authorization').replace(/[^\x21-\x7E]/g, '');
   const isAuth = headerName.toLowerCase() === 'authorization';
 
@@ -68,11 +68,12 @@ module.exports = async (req, res) => {
   // Budżet czasu: zwracamy to, co zdążyliśmy pobrać, zamiast czekać bez końca.
   const started = Date.now();
   const BUDGET_MS = 8000;
-  const BATCH = 10;
+  const BATCH = 20;
 
   try {
     const first = await fetchPage(1);
-    const totalPages = Math.max(1, Math.min(maxPages, (first.pagination && first.pagination.totalPages) || 1));
+    const available = Math.max(1, (first.pagination && first.pagination.totalPages) || 1);
+    const totalPages = Math.min(maxPages, available);
     const pages = [first];
     let failedPages = 0;
     let stoppedEarly = false;
@@ -105,6 +106,7 @@ module.exports = async (req, res) => {
       updated: new Date().toISOString(),
       pagesScanned: pages.length,
       pagesTotal: totalPages,
+      pagesAvailable: available,
       pagesFailed: failedPages,
       partial: stoppedEarly || failedPages > 0 || missingPages > 0,
       itemsScanned: totalItems,
