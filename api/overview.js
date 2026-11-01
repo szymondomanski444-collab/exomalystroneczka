@@ -106,7 +106,11 @@ module.exports = async (req, res) => {
         if (side) found.push(mapUpcoming(m, side));
       }
     }
-    found.sort((a, b) => (a.date + ' ' + a.time).localeCompare(b.date + ' ' + b.time));
+    // mecze z ustalonym terminem przed tymi bez daty (pusta data nie może wygrywać sortowania)
+    found.sort((a, b) => {
+      if (!!a.date !== !!b.date) return a.date ? -1 : 1;
+      return (a.date + ' ' + a.time).localeCompare(b.date + ' ' + b.time);
+    });
     next = found[0] || null;
   } catch (e) {
     upcomingError = true;
