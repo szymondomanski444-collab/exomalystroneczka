@@ -59,15 +59,16 @@ module.exports = async (req, res) => {
   const headers = { Accept: 'application/json' };
   headers[headerName] = isAuth && !/^Bearer /i.test(rawKey) ? 'Bearer ' + rawKey : rawKey;
 
+  // Każde zapytanie ma własny limit czasu, żeby jedna wolna strona nie wywaliła funkcji.
+  const deadline = Date.now() + 6000;
   const fetchPage = async (n) => {
-    const r = await fetch(base + '/matches/history?page=' + n, { headers });
+    const left = Math.max(500, Math.min(4000, deadline - Date.now()));
+    const r = await fetch(base + '/matches/history?page=' + n, { headers, signal: AbortSignal.timeout(left) });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   };
 
   // Budżet czasu: zwracamy to, co zdążyliśmy pobrać, zamiast czekać bez końca.
-  const started = Date.now();
-  const BUDGET_MS = 8000;
   const BATCH = 20;
 
   try {
@@ -80,7 +81,7 @@ module.exports = async (req, res) => {
     const nums = [];
     for (let n = 2; n <= totalPages; n++) nums.push(n);
     for (let i = 0; i < nums.length; i += BATCH) {
-      if (Date.now() - started > BUDGET_MS) { stoppedEarly = true; break; }
+      if (Date.now() > deadline) { stoppedEarly = true; break; }
       const got = await Promise.allSettled(nums.slice(i, i + BATCH).map(fetchPage));
       for (const g of got) {
         if (g.status === 'fulfilled') pages.push(g.value);
