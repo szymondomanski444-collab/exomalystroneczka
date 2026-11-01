@@ -962,6 +962,13 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
     if(ov.next){
       var n=ov.next, t=(n.time||'').slice(0,5);
       var dt=parseDT(n.date+(t?' '+t:''));
+      if(!n.date){
+        // liga zna rywala, ale nie ma jeszcze terminu: pokaż mecz bez odliczania
+        api.stop(); window.__leagueNext=true;
+        box.innerHTML='<h2>Najbliższy mecz</h2><div class="vs"><div class="t">EXOMALY</div><div class="x">VS</div><div class="t">'+esc(n.opponent.name||'?')+'</div></div>'+
+          '<div class="nomatch"><b>Termin do ustalenia</b><span>'+esc((n.bestOf?'BO'+n.bestOf:'')+(n.bestOf&&n.division?' · ':'')+(n.division||''))+'</span></div>';
+        return;
+      }
       if(dt && dt>new Date()){
         window.__leagueNext=true;
         api.start({dt:dt, m:{przeciwnik:n.opponent.name||'?', data:n.date+(t?' '+t:''), mapa:(n.bestOf?'BO'+n.bestOf:'')+(n.division?' · '+n.division:'')}});
