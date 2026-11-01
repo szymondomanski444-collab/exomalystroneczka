@@ -215,48 +215,6 @@ h1.mark { margin: 18px 0 16px; font-family: var(--f-display); font-weight: 300; 
 .lscore small { display: block; margin-top: 8px; font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .nbtn { position: relative; margin-top: 16px; font: inherit; font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
 .nbtn:hover { border-color: #3a3a3a; }
-.profbtn{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));z-index:40;background:color-mix(in srgb,var(--bg) 72%,transparent);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:9px 16px;font:inherit;font-size:.78rem;font-weight:700;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);max-width:44vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.profbtn:hover{border-color:#fff}
-.accov{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px}
-.accov[hidden]{display:none}
-.accbox{position:relative;width:min(420px,100%);max-height:90vh;overflow:auto;background:linear-gradient(180deg,#121212,#0a0a0a);border:1px solid var(--line);border-radius:22px;padding:28px 24px}
-.accbox .mx{position:absolute;right:14px;top:12px}
-.accbox h3{font-family:var(--f-display);font-weight:700;font-size:1.2rem;margin:0 0 6px}
-.accbox p{margin:0 0 14px;color:var(--muted);font-size:.9rem}
-.accbox .tabs{display:flex;gap:8px;margin-bottom:18px}
-.accbox .tabs button{flex:1;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:8px 10px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
-.accbox .tabs button.on{background:#fff;color:#000;border-color:#fff}
-.accbox input{width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#0a0a0a;color:var(--fg);font:inherit}
-.accbox .go{width:100%;margin-top:14px;padding:12px;border-radius:12px;border:0;background:#fff;color:#000;font:inherit;font-weight:700;cursor:pointer}
-.accbox .msg{min-height:1.3em;margin-top:12px;font-size:.88rem;color:var(--muted)}
-.accbox .msg.bad{color:#ff8a8a}
-.accbox textarea,.accbox select{width:100%;margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#0a0a0a;color:var(--fg);font:inherit;font-size:.92rem}
-.accbox textarea{resize:vertical;min-height:72px}
-.accbox .pedit{margin-top:18px;border-top:1px solid #1c1c1c;padding-top:16px}
-.accbox .pedit h4{margin:0 0 10px;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.accbox .pbanner{height:84px;border-radius:14px;border:1px solid var(--line);background:#0a0a0a center/cover no-repeat}
-.accbox .prow{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
-.accbox .prow button,.accbox .pbtn{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);font:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
-.accbox .pav{width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:#0a0a0a center/cover no-repeat;display:grid;place-items:center;font-weight:700;font-size:1.1rem}
-.accbox .plab{display:block;margin-top:12px;font-size:.82rem;color:var(--muted)}
-.accbox .pcount{display:block;text-align:right;color:var(--muted);font-size:.75rem;margin-top:4px}
-.accbox .pedit .go{margin-top:14px}
-.accbox .pnote{color:var(--muted);font-size:.88rem;margin:8px 0 0}
-.accbox .pcard .pbanner{height:120px;border-radius:16px}
-.accbox .pbanner.none{background:linear-gradient(135deg,#1c1c1c,#050505)}
-.accbox .pid{margin-top:-34px;padding:0 4px}
-.accbox .pid .pav{width:68px;height:68px;border:3px solid #0a0a0a;margin-bottom:12px}
-.accbox .pname{display:block;min-width:0}
-.accbox .pname b{display:block;font-size:1.1rem;word-break:break-word}
-.accbox .pname span{display:block;margin-top:2px;color:var(--muted);font-size:.8rem}
-.accbox .pbio{color:var(--fg);white-space:pre-wrap;word-break:break-word;margin:14px 0 0}
-.accbox .pbio.empty{color:var(--muted);font-style:italic}
-.accbox .pcancel{width:100%;margin-top:8px;padding:11px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
-.accbox .idbig{font-family:ui-monospace,Consolas,monospace;font-size:1.5rem;font-weight:700;letter-spacing:.08em;border:1px dashed #555;border-radius:14px;padding:14px;text-align:center;margin:10px 0}
-.accbox .kv{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #1c1c1c;font-size:.92rem}
-.accbox .kv span:first-child{color:var(--muted)}
-.accbox .sec{display:grid;gap:8px;margin-top:18px}
-.accbox .sec a,.accbox .sec button{display:block;text-align:center;text-decoration:none;padding:11px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
 .lpill { display: inline-block; font-size: .66rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--fg); border: 1px solid color-mix(in srgb, var(--fg) 55%, transparent); border-radius: 999px; padding: 3px 10px; animation: lblink 1.6s ease-in-out infinite; }
 @keyframes lblink { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
 .next .meta { position: relative; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: .88rem; color: var(--muted); }
@@ -627,13 +585,6 @@ body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::bef
 .tbl .tlogo{display:inline-block;width:26px;height:26px;object-fit:contain;vertical-align:middle;margin-right:12px}
 .tbl .tlogo-own{display:inline-block;position:relative;width:28px;aspect-ratio:504/420;vertical-align:middle;margin-right:12px}
 .tbl-note{margin:14px 4px 0;font-family:var(--f-body);font-size:.78rem;color:var(--muted);letter-spacing:.02em}
-@media (min-width:701px){
-  .nav2{width:min(1080px,calc(100% - 24px - 160px));left:calc(50% - 80px)}
-}
-@media (max-width:700px){
-  .nav2{width:calc(100% - 24px - 64px);left:calc(50% - 32px)}
-  .profbtn.icon{width:44px;height:44px;padding:0;display:grid;place-items:center;font-size:.9rem}
-}
 </style>
 </head>
 <body>
@@ -671,8 +622,6 @@ body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::bef
     <button type="button" role="tab" data-go="prywatnosc">Prywatność</button>
   </div>
 </nav>
-<button type="button" id="profBtn" class="profbtn" aria-haspopup="dialog">Zaloguj</button>
-<div class="accov" id="accOv" hidden role="dialog" aria-modal="true" aria-label="Konto"><div class="accbox"><button type="button" class="mx" id="accX" aria-label="Zamknij">×</button><div id="accBody"></div></div></div>
 
 <div class="tick2" id="tick" hidden><div class="tk2" id="tk"></div></div>
 
@@ -1038,188 +987,6 @@ var NEWS=list('aktualnosci').filter(function(a){ return a&&(a.tytul||a.tresc); }
   }
   function load(){ fetch('/api/overview',{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(ov){ if(ov){ render(ov); notifyLive(ov); notifButton(); } }).catch(function(){}); }
   load(); setInterval(load,15000);
-})();
-
-/* ---------- konto: logowanie, zakładanie, profil ---------- */
-(function(){
-  var TOK='exo_user_tok', btn=document.getElementById('profBtn'), ov=document.getElementById('accOv'), body=document.getElementById('accBody');
-  if(!btn||!ov) return;
-  var user=null;
-  function tok(){ try{ return localStorage.getItem(TOK)||''; }catch(e){ return ''; } }
-  function setTok(t){ try{ if(t) localStorage.setItem(TOK,t); else localStorage.removeItem(TOK); }catch(e){} }
-  function esc2(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function api(b){
-    return fetch('/api/auth',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)})
-      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); });
-  }
-  var PERSON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
-  var mq=window.matchMedia?matchMedia('(max-width:700px)'):null;
-  function paint(){
-    var mob=!!(mq&&mq.matches);
-    btn.classList.toggle('icon',mob);
-    btn.setAttribute('aria-label',user?('Profil: '+user.nick):'Zaloguj się');
-    if(mob){ btn.innerHTML=user?esc2((user.nick||'?').charAt(0).toUpperCase()):PERSON; return; }
-    btn.textContent=user?(user.nick+(user.role==='admin'?' · admin':'')):'Zaloguj';
-  }
-  if(mq&&mq.addEventListener) mq.addEventListener('change',paint);
-  function open(){ ov.hidden=false; document.body.style.overflow='hidden'; }
-  function close(){ ov.hidden=true; document.body.style.overflow=''; }
-  function authView(mode, msgText){
-    var reg=mode==='reg';
-    body.innerHTML=
-      '<h3>'+(reg?'Załóż konto':'Zaloguj się')+'</h3>'+
-      '<p>'+(reg?'Podaj nick i hasło. Administrator nada uprawnienia po nicku.':'Wpisz nick i hasło.')+'</p>'+
-      '<div class="tabs"><button type="button" data-m="log" class="'+(!reg?'on':'')+'">Zaloguj</button><button type="button" data-m="reg" class="'+(reg?'on':'')+'">Załóż konto</button></div>'+
-      '<input id="aNick" placeholder="Nick" maxlength="20" autocomplete="username">'+
-      '<input id="aPw" type="password" placeholder="Hasło (min. 8 znaków)" autocomplete="'+(reg?'new-password':'current-password')+'">'+
-      '<button class="go" id="aGo" type="button">'+(reg?'Załóż konto':'Wejdź')+'</button>'+
-      '<div class="msg" id="aMsg">'+esc2(msgText||'')+'</div>';
-    body.querySelectorAll('[data-m]').forEach(function(b){ b.addEventListener('click',function(){ authView(b.getAttribute('data-m'),''); }); });
-    document.getElementById('aPw').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('aGo').click(); });
-    document.getElementById('aGo').addEventListener('click',function(){
-      var nick=document.getElementById('aNick').value.trim(), pw=document.getElementById('aPw').value, msg=document.getElementById('aMsg');
-      msg.className='msg';
-      if(!nick){ msg.className='msg bad'; msg.textContent='Wpisz nick.'; return; }
-      if(!pw){ msg.className='msg bad'; msg.textContent='Wpisz hasło.'; return; }
-      if(reg && pw.length<8){ msg.className='msg bad'; msg.textContent='Hasło musi mieć co najmniej 8 znaków.'; return; }
-      msg.textContent=reg?'Zakładam konto…':'Sprawdzam…';
-      api(reg?{action:'register',nick:nick,password:pw}:{action:'login',nick:nick,password:pw}).then(function(res){
-        if(!res.ok||!res.j.token){ msg.className='msg bad'; msg.textContent=res.j.error||'Błąd'; return; }
-        setTok(res.j.token);
-        user={nick:res.j.nick||nick,role:res.j.role||'user'}; paint();
-        profileView();
-      }).catch(function(){ msg.className='msg bad'; msg.textContent='Brak połączenia z serwerem.'; });
-    });
-    var f=document.getElementById('aNick'); if(f && msgText==='') f.focus();
-  }
-  var THEMES=[['mono','Czarny'],['ember','Ognisty'],['ice','Lodowy'],['violet','Fioletowy'],['moss','Zielony']];
-  var pDraft={bio:'',theme:'mono',avatar:'',banner:''};
-  var pAv, pBan; // undefined = bez zmian, '' = usuń, data URL = nowy obraz
-  // Zmniejsza i przycina obraz do kwadratu/banera, koduje jako JPEG w limicie rozmiaru
-  function squash(file,w,h,maxLen,cb){
-    var img=new Image(), url=URL.createObjectURL(file);
-    img.onload=function(){
-      URL.revokeObjectURL(url);
-      var c=document.createElement('canvas'); c.width=w; c.height=h;
-      var x=c.getContext('2d'); x.fillStyle='#000'; x.fillRect(0,0,w,h);
-      var s=Math.max(w/img.width,h/img.height), dw=img.width*s, dh=img.height*s;
-      x.drawImage(img,(w-dw)/2,(h-dh)/2,dw,dh);
-      var out='', q=0.85;
-      for(var i=0;i<5;i++){ out=c.toDataURL('image/jpeg',q); if(out.length<=maxLen) return cb(out); q-=0.15; }
-      cb(null);
-    };
-    img.onerror=function(){ URL.revokeObjectURL(url); cb(null); };
-    img.src=url;
-  }
-  function setBg(el,src){ if(el) el.style.backgroundImage=src?'url("'+src+'")':''; }
-  // wartości z formularza, a gdy go nie ma - zapisany profil
-  function cur(){
-    var bio=document.getElementById('pBio'), th=document.getElementById('pTheme');
-    return {bio:bio?bio.value:(pDraft.bio||''), theme:th?th.value:(pDraft.theme||'mono')};
-  }
-  function api2(method,b){
-    var opt={method:method,headers:{}};
-    if(method==='POST'){ opt.headers['content-type']='application/json'; opt.body=JSON.stringify(b); }
-    return fetch('/api/profile'+(method==='GET'?'?u='+encodeURIComponent(b):''),opt)
-      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,status:r.status,j:j}; }); });
-  }
-  // widok profilu (domyślnie)
-  function showView(note){
-    var box=document.getElementById('pEdit'); if(!box) return;
-    var p=pDraft, nm=(THEMES.filter(function(t){ return t[0]===p.theme; })[0]||THEMES[0])[1];
-    var letter=esc2((user.nick||'?').charAt(0).toUpperCase());
-    box.innerHTML=
-      '<div class="pcard">'+
-        '<div class="pbanner'+(p.banner?'':' none')+'" id="pBanPrev"></div>'+
-        '<div class="pid"><div class="pav" id="pAvPrev">'+(p.avatar?'':letter)+'</div>'+
-          '<div class="pname"><b>'+esc2(user.nick)+'</b><span>Motyw: '+esc2(nm)+'</span></div></div>'+
-        '<p class="pbio'+(p.bio?'':' empty')+'">'+(p.bio?esc2(p.bio):'Nie dodano jeszcze opisu.')+'</p>'+
-        '<button class="go" id="pEditBtn" type="button">Edytuj profil</button>'+
-      '</div>'+
-      (note?'<div class="msg">'+esc2(note)+'</div>':'');
-    setBg(document.getElementById('pBanPrev'),p.banner);
-    setBg(document.getElementById('pAvPrev'),p.avatar);
-    document.getElementById('pEditBtn').addEventListener('click',function(){ pAv=undefined; pBan=undefined; drawEditor(); });
-  }
-  // formularz edycji
-  function drawEditor(note){
-    var box=document.getElementById('pEdit'); if(!box) return;
-    var c=cur();
-    var av=pAv!==undefined?pAv:pDraft.avatar, bn=pBan!==undefined?pBan:pDraft.banner;
-    box.innerHTML=
-      '<h4>Edytuj profil</h4>'+
-      '<div class="pbanner" id="pBanPrev"></div>'+
-      '<div class="prow"><label class="pbtn">Zmień baner<input type="file" id="pBanF" accept="image/*" hidden></label>'+(bn?'<button type="button" id="pBanX">Usuń baner</button>':'')+'</div>'+
-      '<div class="prow"><div class="pav" id="pAvPrev">'+(av?'':esc2((user.nick||'?').charAt(0).toUpperCase()))+'</div>'+
-        '<label class="pbtn">Zmień awatar<input type="file" id="pAvF" accept="image/*" hidden></label>'+(av?'<button type="button" id="pAvX">Usuń</button>':'')+'</div>'+
-      '<label class="plab">Opis (do 200 znaków)<textarea id="pBio" maxlength="200" rows="3"></textarea></label>'+
-      '<span class="pcount"><span id="pCnt">0</span>/200</span>'+
-      '<label class="plab">Motyw profilu<select id="pTheme">'+THEMES.map(function(t){ return '<option value="'+t[0]+'">'+t[1]+'</option>'; }).join('')+'</select></label>'+
-      '<button class="go" id="pSave" type="button">Zapisz profil</button>'+
-      '<button class="pcancel" id="pCancel" type="button">Anuluj</button>'+
-      '<div class="msg" id="pMsg">'+esc2(note||'')+'</div>';
-    document.getElementById('pBio').value=c.bio;
-    document.getElementById('pTheme').value=c.theme;
-    document.getElementById('pCnt').textContent=c.bio.length;
-    setBg(document.getElementById('pBanPrev'),bn);
-    setBg(document.getElementById('pAvPrev'),av);
-    function msg(t,bad){ var m=document.getElementById('pMsg'); m.className=bad?'msg bad':'msg'; m.textContent=t; }
-    document.getElementById('pBio').addEventListener('input',function(){ document.getElementById('pCnt').textContent=this.value.length; });
-    document.getElementById('pBanF').addEventListener('change',function(){
-      var f=this.files&&this.files[0]; if(!f) return;
-      squash(f,1200,300,320*1024,function(d){ if(!d){ msg('Baner jest za duży. Wybierz mniejszy obraz.',true); return; } pBan=d; drawEditor('Baner gotowy. Zapisz profil, żeby go zachować.'); });
-    });
-    document.getElementById('pAvF').addEventListener('change',function(){
-      var f=this.files&&this.files[0]; if(!f) return;
-      squash(f,256,256,150*1024,function(d){ if(!d){ msg('Awatar jest za duży. Wybierz mniejszy obraz.',true); return; } pAv=d; drawEditor('Awatar gotowy. Zapisz profil, żeby go zachować.'); });
-    });
-    var bx=document.getElementById('pBanX'); if(bx) bx.addEventListener('click',function(){ pBan=''; drawEditor('Baner usunięty. Zapisz profil.'); });
-    var ax=document.getElementById('pAvX'); if(ax) ax.addEventListener('click',function(){ pAv=''; drawEditor('Awatar usunięty. Zapisz profil.'); });
-    document.getElementById('pCancel').addEventListener('click',function(){ pAv=undefined; pBan=undefined; showView(); });
-    document.getElementById('pSave').addEventListener('click',function(){
-      var t=tok(), c2=cur();
-      if(!t){ msg('Zaloguj się ponownie.',true); return; }
-      var req={token:t,bio:c2.bio,theme:c2.theme};
-      if(pAv!==undefined) req.avatar=pAv;
-      if(pBan!==undefined) req.banner=pBan;
-      msg('Zapisuję…',false);
-      api2('POST',req).then(function(res){
-        if(!res.ok){ msg(res.status===401?'Sesja wygasła. Zaloguj się ponownie.':(res.j.error||'Nie udało się zapisać.'),true); return; }
-        pDraft=res.j.profile; pAv=undefined; pBan=undefined;
-        showView('Zapisano.');
-      }).catch(function(){ msg('Brak połączenia z serwerem.',true); });
-    });
-  }
-  function profileView(){
-    var adm=user&&user.role==='admin';
-    pAv=undefined; pBan=undefined;
-    body.innerHTML=
-      '<h3>Twój profil</h3>'+
-      '<div class="pedit" id="pEdit"><p class="pnote">Wczytywanie profilu…</p></div>'+
-      '<div class="sec">'+
-        (adm?'<a href="admin.html">Przejdź do panelu</a>':'')+
-        '<button type="button" id="aOut">Wyloguj</button>'+
-      '</div>';
-    document.getElementById('aOut').addEventListener('click',function(){ setTok(''); user=null; paint(); close(); });
-    api2('GET',user.nick).then(function(res){
-      if(!res.ok) throw new Error('x');
-      pDraft=res.j; showView();
-    }).catch(function(){ var e=document.getElementById('pEdit'); if(e) e.innerHTML='<p class="pnote">Nie udało się wczytać profilu.</p>'; });
-  }
-  function refresh(){
-    var t=tok();
-    if(!t){ user=null; paint(); return Promise.resolve(); }
-    return api({action:'me',token:t}).then(function(res){
-      if(res.ok){ user={nick:res.j.nick||'',role:res.j.role||'user'}; }
-      else { setTok(''); user=null; }
-      paint();
-    }).catch(function(){ paint(); });
-  }
-  btn.addEventListener('click',function(){ open(); if(user) profileView(); else authView('log',''); });
-  document.getElementById('accX').addEventListener('click',close);
-  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!ov.hidden) close(); });
-  refresh();
 })();
 
 /* ---------- liczniki ---------- */
