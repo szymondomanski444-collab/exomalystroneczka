@@ -81,7 +81,7 @@ module.exports = async (req, res) => {
           footer: { text: s.texts.footer, icon_url: LOGO_URL },
           timestamp: new Date().toISOString(),
         }],
-        components: [{ type: 1, components: [{ type: 2, style: 1, label: s.texts.panelButton, emoji: { name: '🎫' }, custom_id: 'ticket_open' }] }],
+        components: B.panelComponents(s),
       });
       return res.status(200).json({ ok: true });
     }

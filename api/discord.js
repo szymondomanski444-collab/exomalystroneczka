@@ -10,7 +10,7 @@
 // Uprawnienia do komend sprawdzane są po uprawnieniach użytkownika na serwerze (bit w member.permissions).
 
 const crypto = require('crypto');
-const { readSettings } = require('../lib/bot-settings.js');
+const { readSettings, TICKET_CATEGORIES, panelComponents } = require('../lib/bot-settings.js');
 
 const API = 'https://discord.com/api/v10';
 const EPHEMERAL = 64;
@@ -113,11 +113,13 @@ async function dmUser(userId, e) {
 
 // Tickety ----------------------------------------------------------------
 
-async function openTicket(i) {
+async function openTicket(i, catValue) {
   const guild = i.guild_id;
   const user = i.member.user;
+  const cat = TICKET_CATEGORIES.find((c) => c.value === catValue) || null;
   const category = cfgOr('ticketCategoryId', 'DISCORD_TICKET_CATEGORY_ID');
-  const base = ('ticket-' + (user.username || 'gracz')).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 90);
+  const prefix = cat ? cat.value : 'ticket';
+  const base = (prefix + '-' + (user.username || 'gracz')).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 90);
   const overwrites = [
     { id: guild, type: 0, allow: '0', deny: '1024' }, // @everyone nie widzi kanału
     { id: user.id, type: 1, allow: TICKET_ALLOW, deny: '0' },
@@ -134,11 +136,12 @@ async function openTicket(i) {
   });
   await discord('POST', `/channels/${ch.id}/messages`, {
     content: `<@${user.id}>`,
-    embeds: [embed(CFG.texts.welcomeTitle, CFG.texts.welcomeDesc, COLORS.info, null, true)],
+    embeds: [embed(CFG.texts.welcomeTitle, CFG.texts.welcomeDesc, COLORS.info,
+      cat ? [{ name: 'Kategoria', value: `${cat.emoji} ${cat.label}`, inline: true }] : null, true)],
     components: [{ type: 1, components: [{ type: 2, style: 4, label: CFG.texts.closeButton, emoji: { name: '🔒' }, custom_id: 'ticket_close' }] }],
     allowed_mentions: { users: [user.id] },
   });
-  await log(embed('Ticket otwarty', `<#${ch.id}> · przez <@${user.id}>`, COLORS.ok));
+  await log(embed('Ticket otwarty', `<#${ch.id}> · przez <@${user.id}>${cat ? ' · kategoria: ' + cat.label : ''}`, COLORS.ok));
   return reply(`Ticket utworzony: <#${ch.id}>`);
 }
 
@@ -168,7 +171,7 @@ async function onCommand(i) {
       if (!can(m, BIT.ADMIN | BIT.MANAGE_GUILD)) return noPerm();
       await discord('POST', `/channels/${i.channel_id}/messages`, {
         embeds: [embed(CFG.texts.panelTitle, CFG.texts.panelDesc, COLORS.info, null, true)],
-        components: [{ type: 1, components: [{ type: 2, style: 1, label: CFG.texts.panelButton, emoji: { name: '🎫' }, custom_id: 'ticket_open' }] }],
+        components: panelComponents(CFG),
       });
       return reply('Panel opublikowany.');
     }
@@ -221,9 +224,11 @@ async function onCommand(i) {
 }
 
 async function onButton(i) {
-  if (i.data.custom_id === 'ticket_open') {
+  // ticket_open: stary przycisk z wcześniej opublikowanych paneli, bez kategorii
+  if (i.data.custom_id === 'ticket_open' || i.data.custom_id === 'ticket_pick') {
     if (!i.member) return reply('Ticket można otworzyć tylko na serwerze.');
-    return openTicket(i);
+    const picked = (i.data.values && i.data.values[0]) || null;
+    return openTicket(i, i.data.custom_id === 'ticket_pick' ? picked : null);
   }
   if (i.data.custom_id === 'ticket_close') return closeTicket(i);
   return reply('Nieznany przycisk.');
