@@ -11,6 +11,10 @@
 
 const crypto = require('crypto');
 const { readSettings, TICKET_CATEGORIES, panelComponents, rulesFields } = require('../lib/bot-settings.js');
+const { addWarn, listWarns } = require('../lib/warns.js');
+// waitUntil pozwala dokończyć zamykanie ticketa po odpowiedzi do Discorda (limit 3 s na odpowiedź)
+let waitUntil = null;
+try { waitUntil = require('@vercel/functions').waitUntil; } catch (e) { waitUntil = null; }
 
 const API = 'https://discord.com/api/v10';
 const EPHEMERAL = 64;
@@ -113,9 +117,19 @@ async function dmUser(userId, e) {
 
 // Tickety ----------------------------------------------------------------
 
+// Jeden otwarty ticket na gracza: szukamy kanału z ID gracza w temacie.
+async function findOpenTicket(guild, userId) {
+  const chans = await discord('GET', `/guilds/${guild}/channels`);
+  const re = new RegExp('Ticket gracza ' + userId + '(\\D|$)');
+  const hit = (chans || []).find((c) => c.type === 0 && re.test(c.topic || ''));
+  return hit ? hit.id : null;
+}
+
 async function openTicket(i, catValue) {
   const guild = i.guild_id;
   const user = i.member.user;
+  const existing = await findOpenTicket(guild, user.id);
+  if (existing) return reply(`Masz już otwarty ticket: <#${existing}>`);
   const cat = TICKET_CATEGORIES.find((c) => c.value === catValue) || null;
   const category = cfgOr('ticketCategoryId', 'DISCORD_TICKET_CATEGORY_ID');
   const prefix = cat ? cat.value : 'ticket';
@@ -285,9 +299,19 @@ async function onCommand(i) {
       if (!can(m, STAFF)) return noPerm();
       const t = target();
       const reason = val('reason') || 'brak powodu';
+      const count = await addWarn(t.id, { reason, by: m.user.id });
       const sent = await dmUser(t.id, embed('Ostrzeżenie', 'Otrzymałeś ostrzeżenie na serwerze Exomaly.\nPowód: ' + reason, COLORS.warn));
-      await log(embed('Ostrzeżenie', `<@${t.id}> · ${reason}\nPrzez: ${by}`, COLORS.warn));
-      return reply(`Ostrzeżenie dla <@${t.id}> zapisane.` + (sent ? '' : ' (nie udało się wysłać prywatnej wiadomości)'));
+      await log(embed('Ostrzeżenie', `<@${t.id}> · ${reason}\nPrzez: ${by}\nŁącznie ostrzeżeń: ${count}`, COLORS.warn));
+      return reply(`Ostrzeżenie dla <@${t.id}> zapisane. Łącznie ostrzeżeń: ${count}.` + (sent ? '' : ' (nie udało się wysłać prywatnej wiadomości)'));
+    }
+    case 'warnings': {
+      if (!can(m, STAFF)) return noPerm();
+      const t = target();
+      const list = await listWarns(t.id);
+      if (!list.length) return reply(`<@${t.id}> nie ma ostrzeżeń.`);
+      const lines = list.slice(-10).reverse().map((w) => `• ${w.at.slice(0, 10)} · ${w.reason} · przez <@${w.by}>`);
+      if (list.length > 10) lines.push(`… i ${list.length - 10} wcześniejszych`);
+      return reply(undefined, [embed(`Ostrzeżenia: ${t.name}`, `Łącznie: ${list.length}\n\n` + lines.join('\n'), COLORS.warn)]);
     }
     case 'timeout': {
       if (!can(m, BIT.MODERATE)) return noPerm();
@@ -327,6 +351,32 @@ async function onCommand(i) {
     default:
       return reply('Nieznana komenda.');
   }
+}
+
+// Odpowiedź dla zamykającego wysyłana po zakończeniu (interakcja ważna 15 minut).
+async function followUp(i, content) {
+  await fetch(`${API}/webhooks/${i.application_id}/${i.token}/messages/@original`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
+  });
+}
+
+async function closeInBackground(i, reason) {
+  let text;
+  try {
+    await closeTicket(i, reason);
+    text = 'Ticket zamknięty.';
+  } catch (e) {
+    text = 'Nie udało się zamknąć ticketa: ' + (e && e.message ? e.message : 'błąd').slice(0, 160);
+  }
+  await followUp(i, text).catch(() => {});
+}
+
+function modalReason(i) {
+  const row = (i.data.components || [])[0];
+  const field = row && (row.components || [])[0];
+  return field && field.value;
 }
 
 async function onModal(i) {
@@ -387,6 +437,13 @@ module.exports = async (req, res) => {
 
   // Discord sprawdza adres przy zapisie w panelu: PING musi dostać PONG
   if (i.type === 1) return res.status(200).json({ type: 1 });
+
+  // zamknięcie ticketa: odpowiedź "myślę" od razu, reszta w tle (jeśli dostępne)
+  if (i.type === 5 && i.data.custom_id === CLOSE_MODAL && waitUntil) {
+    res.status(200).json({ type: 5, data: { flags: EPHEMERAL } });
+    waitUntil(closeInBackground(i, modalReason(i)));
+    return;
+  }
 
   try {
     let out;
