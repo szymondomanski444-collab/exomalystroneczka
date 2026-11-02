@@ -171,17 +171,89 @@ function closeModal() {
   };
 }
 
+// Transkrypcja: ostatnie wiadomości z kanału, od najstarszej, jako zwykły tekst.
+const TRANSCRIPT_MAX = 300;
+
+async function fetchMessages(channelId) {
+  const out = [];
+  let before = null;
+  while (out.length < TRANSCRIPT_MAX) {
+    const batch = await discord('GET', `/channels/${channelId}/messages?limit=100${before ? '&before=' + before : ''}`);
+    if (!batch || !batch.length) break;
+    out.push(...batch);
+    before = batch[batch.length - 1].id;
+    if (batch.length < 100) break;
+  }
+  return out.slice(0, TRANSCRIPT_MAX).reverse();
+}
+
+function buildTranscript(msgs, chName) {
+  const lines = [`Transkrypcja ticketa #${chName}`, `Wygenerowano: ${new Date().toISOString()} (UTC)`, ''];
+  for (const m of msgs) {
+    const when = new Date(m.timestamp).toISOString().replace('T', ' ').slice(0, 19);
+    const who = (m.author && (m.author.global_name || m.author.username)) || '?';
+    const parts = [];
+    if (m.content) parts.push(m.content);
+    for (const a of m.attachments || []) parts.push('[załącznik] ' + a.url);
+    if (m.embeds && m.embeds.length) parts.push('[embed]');
+    lines.push(`[${when}] ${who}: ${parts.join(' ') || '(pusta wiadomość)'}`);
+  }
+  return lines.join('\n') + '\n';
+}
+
+// Wysyłka wiadomości z plikiem (multipart). Zwraca nic, rzuca błąd przy odrzuceniu.
+async function discordUpload(channelId, embeds, fileName, text) {
+  const form = new FormData();
+  form.append('payload_json', JSON.stringify({ embeds, allowed_mentions: { parse: [] } }));
+  form.append('files[0]', new Blob([text], { type: 'text/plain; charset=utf-8' }), fileName);
+  const r = await fetch(API + `/channels/${channelId}/messages`, {
+    method: 'POST',
+    headers: { Authorization: 'Bot ' + env('DISCORD_BOT_TOKEN') },
+    body: form,
+  });
+  if (!r.ok) throw new Error('upload → ' + r.status + ' ' + (await r.text().catch(() => '')).slice(0, 120));
+}
+
 async function closeTicket(i, reasonRaw) {
   const who = i.member && i.member.user;
+  const closer = who ? '<@' + who.id + '>' : 'nieznany';
   const reason = String(reasonRaw || '').trim().slice(0, 300) || 'brak powodu';
-  const name = i.channel && i.channel.name ? '#' + i.channel.name : i.channel_id;
-  await log(embed('Ticket zamknięty', `Kanał: ${name}\nPrzez: <@${who && who.id}>\nPowód: ${reason}`, COLORS.bad));
+  const ch = await discord('GET', `/channels/${i.channel_id}`);
+  const chName = ch.name || i.channel_id;
+  const owner = ((ch.topic || '').match(/Ticket gracza (\d+)/) || [])[1] || null;
+
+  let text = '';
   try {
-    await discord('POST', `/channels/${i.channel_id}/messages`, {
-      embeds: [embed('Ticket zamknięty', `Zamknął: <@${who && who.id}>\nPowód: ${reason}`, COLORS.bad)],
-      allowed_mentions: { parse: [] },
-    });
-  } catch (e) { /* komunikat nie może zablokować zamknięcia */ }
+    text = buildTranscript(await fetchMessages(i.channel_id), chName);
+  } catch (e) {
+    text = 'Nie udało się pobrać transkrypcji: ' + e.message + '\n';
+  }
+  const file = `transkrypcja-${chName}.txt`;
+
+  // log moderacji: powód + kto zamknął + transkrypcja
+  const logEmbed = embed('Ticket zamknięty', `Kanał: #${chName}\nZamknął: ${closer}\nTicket gracza: ${owner ? '<@' + owner + '>' : 'nieznany'}\nPowód: ${reason}`, COLORS.bad);
+  const ch2 = cfgOr('logChannelId', 'DISCORD_LOG_CHANNEL_ID');
+  if (ch2) {
+    try { await discordUpload(ch2, [logEmbed], file, text); }
+    catch (e) { await log(logEmbed); }
+  }
+
+  // DM do autora ticketa: powód + transkrypcja
+  let dmNote = '';
+  if (owner) {
+    try {
+      const dm = await discord('POST', '/users/@me/channels', { recipient_id: owner });
+      await discordUpload(dm.id, [embed('Twój ticket został zamknięty', `Powód: ${reason}\n\nW załączniku znajduje się transkrypcja rozmowy.`, COLORS.bad)], file, text);
+    } catch (e) {
+      dmNote = ' (nie udało się wysłać DM)';
+    }
+  } else {
+    dmNote = ' (brak ID autora w temacie kanału)';
+  }
+  if (dmNote && ch2) {
+    await log(embed('Ticket zamknięty: DM niewysłany', `Kanał: #${chName}${dmNote}`, COLORS.warn));
+  }
+
   await discord('DELETE', `/channels/${i.channel_id}`);
   return reply('Ticket zamknięty.');
 }
