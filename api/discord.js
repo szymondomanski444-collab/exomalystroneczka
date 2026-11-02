@@ -10,7 +10,7 @@
 // Uprawnienia do komend sprawdzane są po uprawnieniach użytkownika na serwerze (bit w member.permissions).
 
 const crypto = require('crypto');
-const { readSettings, TICKET_CATEGORIES, panelComponents } = require('../lib/bot-settings.js');
+const { readSettings, TICKET_CATEGORIES, panelComponents, rulesFields } = require('../lib/bot-settings.js');
 
 const API = 'https://discord.com/api/v10';
 const EPHEMERAL = 64;
@@ -344,6 +344,25 @@ async function onButton(i) {
     return openTicket(i, i.data.custom_id === 'ticket_pick' ? picked : null);
   }
   if (i.data.custom_id === 'ticket_close') return closeModal();
+  // kategoria regulaminu: zasady widoczne tylko dla klikającego
+  if (i.data.custom_id.startsWith('rule:')) {
+    const f = rulesFields(CFG.texts.rulesBody)[parseInt(i.data.custom_id.slice(5), 10)];
+    if (!f) return reply('Ta kategoria regulaminu już nie istnieje. Poproś staff o odświeżenie regulaminu.');
+    return {
+      type: 4,
+      data: {
+        embeds: [{
+          author: { name: 'EXOMALY · Regulamin', icon_url: LOGO_URL },
+          title: f.name,
+          description: f.value,
+          color: COLORS.info,
+          footer: { text: CFG.texts.footer },
+        }],
+        flags: EPHEMERAL,
+        allowed_mentions: { parse: [] },
+      },
+    };
+  }
   return reply('Nieznany przycisk.');
 }
 

@@ -97,14 +97,14 @@ module.exports = async (req, res) => {
         embeds: [{
           author: { name: 'EXOMALY', icon_url: LOGO_URL },
           title: '📜 ' + s.texts.rulesTitle,
-          description: s.texts.rulesIntro,
+          description: s.texts.rulesIntro + '\n\nWybierz kategorię poniżej, żeby zobaczyć zasady.',
           color,
-          fields: B.rulesFields(s.texts.rulesBody),
           image: { url: BANNER_URL },
           thumbnail: { url: LOGO_URL },
           footer: { text: s.texts.footer + ' · Regulamin', icon_url: LOGO_URL },
           timestamp: new Date().toISOString(),
         }],
+        components: B.rulesComponents(s.texts.rulesBody),
         allowed_mentions: { parse: [] },
       });
       return res.status(200).json({ ok: true });
