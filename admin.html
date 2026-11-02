@@ -403,6 +403,9 @@ function botInput(k,label,val,ph){
 function botText(k,label,val){
   return '<label class="fld wide"><span>'+esc(label)+'</span><input data-bt="'+k+'" value="'+esc(val||'')+'"></label>';
 }
+function botArea(k,label,val){
+  return '<label class="fld wide"><span>'+esc(label)+'</span><textarea data-bt="'+k+'" rows="4">'+esc(val||'')+'</textarea></label>';
+}
 function botColor(k,label,val){
   return '<label class="fld"><span>'+esc(label)+'</span><input data-bc="'+k+'" value="'+esc(val||'')+'" placeholder="#RRGGBB"></label>';
 }
@@ -445,10 +448,10 @@ function botRender(){
     '<h3 class="sub">Teksty wiadomości</h3>'+
     '<div class="grid">'+
       botText('panelTitle','Tytuł panelu',tx.panelTitle)+
-      botText('panelDesc','Opis panelu',tx.panelDesc)+
+      botArea('panelDesc','Opis panelu (Enter = nowa linia)',tx.panelDesc)+
       botText('panelButton','Podpowiedź w menu wyboru kategorii',tx.panelButton)+
       botText('welcomeTitle','Tytuł wiadomości w tickecie',tx.welcomeTitle)+
-      botText('welcomeDesc','Treść wiadomości w tickecie',tx.welcomeDesc)+
+      botArea('welcomeDesc','Treść wiadomości w tickecie',tx.welcomeDesc)+
       botText('closeButton','Napis na przycisku zamknięcia',tx.closeButton)+
       botText('footer','Stopka wiadomości',tx.footer)+
       botText('recruitTitle','Tytuł panelu naboru',tx.recruitTitle)+
