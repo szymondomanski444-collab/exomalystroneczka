@@ -115,6 +115,9 @@ details.sec{margin-top:0}
 .photo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
 .pthumb{width:66px;height:70px;object-fit:cover;object-position:top center;border-radius:10px;border:1px solid var(--line);background:#0a0a0a}
 .nophoto{font-size:.8rem;color:var(--mute)}
+.brow{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.sub{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:18px 0 8px}
+.hint.err{color:#ff8a8a}
 </style>
 </head>
 <body>
@@ -299,15 +302,14 @@ function render(){
     [10,15,20,30,60].map(function(n){ return '<option value="'+n+'"'+(String(S.ustawienia.tloCzas||20)===String(n)?' selected':'')+'>'+n+' s</option>'; }).join('')+
     '</select></label>'+
     '<label class="fld"><span>Link do własnego zdjęcia (https://…), używany gdy wybrane jest „Własne zdjęcie"</span><input data-path="ustawienia.tloUrl" value="'+esc(S.ustawienia.tloUrl||'')+'"></label>');
-  h+=section('Bot Discorda',
-    '<p class="hint">Rejestruje komendy /panel, /warn, /timeout, /kick, /ban i /purge na serwerze. Wystarczy raz albo po zmianie komend. Token bota zostaje w Vercelu.</p>'+
-    '<div class="addrow"><button type="button" class="primary" id="regBtn">Zarejestruj komendy</button></div><div class="hint" id="regMsg"></div>');
+  h+=section('Bot Discorda','<div id="botBox"></div>');
   LISTS.forEach(function(sec){
     var extra=sec.k==='terminarz'?'<button type="button" class="danger" data-act="endnow">Usuń trwający mecz</button>':'';
     h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button> '+extra+'</div>'+listHTML(sec));
   });
   $('editor').innerHTML=h;
   buildTabs();
+  botRender();
 }
 var activeTab=0;
 function showTab(){
@@ -379,14 +381,130 @@ $('editor').addEventListener('change',function(e){
   });
 });
 
+// ---- panel bota Discorda ----
+var botState=null, botBans=[], botErr='', botLoading=false, botMsgText='', botMsgBad=false;
+function botMsg(t,bad){ botMsgText=t; botMsgBad=!!bad; var m=document.getElementById('botMsg'); if(m){ m.className=bad?'hint err':'hint'; m.textContent=t; } }
+function botCall(body){
+  return fetch(API+'bot-admin',{method:'POST',headers:{'content-type':'application/json','x-admin-pass':pass()},body:JSON.stringify(body)})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,j:j}; }); });
+}
+function botLoad(){
+  if(botLoading) return; botLoading=true;
+  botCall({action:'get'}).then(function(res){
+    botLoading=false;
+    if(!res.ok){ botErr=res.j.error||'Nie udało się wczytać ustawień bota.'; }
+    else { botState=res.j.settings; botBans=res.j.bans||[]; botErr=res.j.bansError?('Lista banów: '+res.j.bansError):''; }
+    botRender();
+  }).catch(function(){ botLoading=false; botErr='Brak połączenia z serwerem.'; botRender(); });
+}
+function botInput(k,label,val,ph){
+  return '<label class="fld"><span>'+esc(label)+'</span><input data-bf="'+k+'" value="'+esc(val||'')+'" placeholder="'+esc(ph||'')+'"></label>';
+}
+function botText(k,label,val){
+  return '<label class="fld wide"><span>'+esc(label)+'</span><input data-bt="'+k+'" value="'+esc(val||'')+'"></label>';
+}
+function botColor(k,label,val){
+  return '<label class="fld"><span>'+esc(label)+'</span><input data-bc="'+k+'" value="'+esc(val||'')+'" placeholder="#RRGGBB"></label>';
+}
+function botBansHTML(q){
+  var list=botBans.filter(function(b){ var t=(q||'').toLowerCase(); return !t || (b.name||'').toLowerCase().indexOf(t)>=0 || String(b.id).indexOf(t)>=0; });
+  if(!botBans.length) return '<p class="hint">Brak zbanowanych użytkowników.</p>';
+  if(!list.length) return '<p class="hint">Nic nie pasuje do wyszukiwania.</p>';
+  return list.map(function(b){
+    return '<div class="brow"><div><b>'+esc(b.name)+'</b><div class="hint">ID: '+esc(b.id)+(b.reason?' · powód: '+esc(b.reason):'')+'</div></div>'+
+      '<button type="button" class="primary" data-bot="unban" data-id="'+esc(b.id)+'">Odbanuj</button></div>';
+  }).join('');
+}
+function botRender(){
+  var box=document.getElementById('botBox'); if(!box) return;
+  if(!botState){
+    box.innerHTML = botErr
+      ? '<p class="hint err">'+esc(botErr)+'</p><div class="addrow"><button type="button" data-bot="reload">Spróbuj ponownie</button></div>'
+      : '<p class="hint">Wczytywanie ustawień bota…</p>';
+    if(!botErr && !botLoading) botLoad();
+    return;
+  }
+  var st=botState, tx=st.texts, cl=st.colors;
+  box.innerHTML=
+    '<p class="hint">Ustawienia zapisują się w panelu i są używane przez bota od razu. Puste ID oznacza, że bot użyje wartości z Vercela (jeśli są).</p>'+
+    '<h3 class="sub">Kto i gdzie</h3>'+
+    '<div class="grid">'+
+      botInput('staffRoleId','ID roli staffu (widzi tickety)',st.staffRoleId,'np. 123456789012345678')+
+      botInput('ticketCategoryId','ID kategorii ticketów',st.ticketCategoryId,'kategoria na kanały ticketów')+
+      botInput('logChannelId','ID kanału logów moderacji',st.logChannelId,'kanał na logi')+
+      botInput('panelChannelId','ID kanału panelu ticketów',st.panelChannelId,'gdzie publikować przycisk ticketów')+
+    '</div>'+
+    '<h3 class="sub">Kolory wiadomości</h3>'+
+    '<div class="grid">'+
+      botColor('info','Informacje',cl.info)+botColor('ok','Sukces',cl.ok)+botColor('warn','Ostrzeżenie',cl.warn)+botColor('bad','Kara / zamknięcie',cl.bad)+
+    '</div>'+
+    '<h3 class="sub">Teksty wiadomości</h3>'+
+    '<div class="grid">'+
+      botText('panelTitle','Tytuł panelu',tx.panelTitle)+
+      botText('panelDesc','Opis panelu',tx.panelDesc)+
+      botText('panelButton','Napis na przycisku otwarcia ticketu',tx.panelButton)+
+      botText('welcomeTitle','Tytuł wiadomości w tickecie',tx.welcomeTitle)+
+      botText('welcomeDesc','Treść wiadomości w tickecie',tx.welcomeDesc)+
+      botText('closeButton','Napis na przycisku zamknięcia',tx.closeButton)+
+      botText('footer','Stopka wiadomości',tx.footer)+
+    '</div>'+
+    '<div class="addrow" style="margin-top:12px"><button type="button" class="primary" data-bot="save">Zapisz ustawienia bota</button> '+
+      '<button type="button" data-bot="publish">Opublikuj panel na kanale</button> '+
+      '<button type="button" data-bot="register">Zarejestruj komendy</button></div>'+
+    '<div class="hint" id="botMsg">'+esc(botMsgText)+'</div>'+
+    '<h3 class="sub">Zbanowani</h3>'+
+    (botErr?'<p class="hint err">'+esc(botErr)+'</p>':'')+
+    '<input data-bot-search placeholder="Szukaj po nicku albo ID" style="margin-bottom:10px">'+
+    '<div id="botBans">'+botBansHTML('')+'</div>';
+  if(botMsgText) botMsg(botMsgText,botMsgBad);
+}
+function botCollect(){
+  var box=document.getElementById('botBox'), s={colors:{},texts:{}};
+  box.querySelectorAll('[data-bf]').forEach(function(el){ s[el.getAttribute('data-bf')]=el.value.trim(); });
+  box.querySelectorAll('[data-bc]').forEach(function(el){ s.colors[el.getAttribute('data-bc')]=el.value.trim(); });
+  box.querySelectorAll('[data-bt]').forEach(function(el){ s.texts[el.getAttribute('data-bt')]=el.value.trim(); });
+  return s;
+}
+document.addEventListener('input',function(e){
+  if(!(e.target.hasAttribute&&e.target.hasAttribute('data-bot-search'))) return;
+  var q=e.target.value, el=document.getElementById('botBans'); if(el) el.innerHTML=botBansHTML(q);
+});
 document.addEventListener('click',function(e){
-  var b=e.target.closest&&e.target.closest('#regBtn'); if(!b) return;
-  var m=document.getElementById('regMsg'); b.disabled=true; m.textContent='Rejestruję komendy…';
-  fetch(API+'discord-register',{method:'POST',headers:{'x-admin-pass':pass()}})
-    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,j:j}; }); })
-    .then(function(res){ m.textContent=res.ok?('Gotowe: komendy zarejestrowane ('+res.j.commands+').'):(res.j.error||'Błąd rejestracji.')+(res.j.details?' '+res.j.details:''); })
-    .catch(function(){ m.textContent='Brak połączenia z serwerem.'; })
-    .then(function(){ b.disabled=false; });
+  var b=e.target.closest&&e.target.closest('[data-bot]'); if(!b) return;
+  var act=b.getAttribute('data-bot');
+  if(act==='reload'){ botErr=''; botLoading=false; botRender(); return; }
+  if(act==='save'){
+    botMsg('Zapisuję…');
+    botCall({action:'save',settings:botCollect()}).then(function(res){
+      if(!res.ok){ botMsg(res.j.error||'Nie udało się zapisać.',true); return; }
+      botState=res.j.settings; botMsg('Ustawienia zapisane. Bot używa ich od razu.');
+    }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
+  }
+  else if(act==='publish'){
+    botMsg('Publikuję panel…');
+    botCall({action:'publish'}).then(function(res){
+      botMsg(res.ok?'Panel opublikowany na kanale.':(res.j.error||'Nie udało się opublikować.'),!res.ok);
+    }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
+  }
+  else if(act==='register'){
+    botMsg('Rejestruję komendy…');
+    fetch(API+'discord-register',{method:'POST',headers:{'x-admin-pass':pass()}})
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,j:j}; }); })
+      .then(function(res){ botMsg(res.ok?('Gotowe: komendy zarejestrowane ('+res.j.commands+').'):((res.j.error||'Błąd rejestracji.')+(res.j.details?' '+res.j.details:'')),!res.ok); })
+      .catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
+  }
+  else if(act==='unban'){
+    var id=b.getAttribute('data-id'), who=botBans.filter(function(x){ return x.id===id; })[0];
+    if(!confirm('Odbanować '+(who?who.name:id)+'?')) return;
+    b.disabled=true;
+    botCall({action:'unban',userId:id}).then(function(res){
+      if(!res.ok){ b.disabled=false; botMsg(res.j.error||'Nie udało się odbanować.',true); return; }
+      botBans=botBans.filter(function(x){ return x.id!==id; });
+      var q=(document.querySelector('[data-bot-search]')||{}).value||'';
+      var el=document.getElementById('botBans'); if(el) el.innerHTML=botBansHTML(q);
+      botMsg('Odbanowano: '+(who?who.name:id)+'.');
+    }).catch(function(){ b.disabled=false; botMsg('Brak połączenia z serwerem.',true); });
+  }
 });
 
 $('save').addEventListener('click',function(){

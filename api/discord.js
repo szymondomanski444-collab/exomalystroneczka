@@ -10,6 +10,7 @@
 // Uprawnienia do komend sprawdzane są po uprawnieniach użytkownika na serwerze (bit w member.permissions).
 
 const crypto = require('crypto');
+const { readSettings } = require('../lib/bot-settings.js');
 
 const API = 'https://discord.com/api/v10';
 const EPHEMERAL = 64;
@@ -23,7 +24,9 @@ const BIT = {
 };
 const STAFF = BIT.ADMIN | BIT.KICK | BIT.BAN | BIT.MANAGE_MESSAGES | BIT.MODERATE;
 const TICKET_ALLOW = String(1024n + 2048n + 65536n); // widok kanału, pisanie, historia
-const COLORS = { info: 0x5865f2, ok: 0x57f287, warn: 0xfee75c, bad: 0xed4245 };
+let COLORS = { info: 0x5865f2, ok: 0x57f287, warn: 0xfee75c, bad: 0xed4245 };
+let CFG = null; // ustawienia z panelu admina (ładowane przy każdym żądaniu)
+const cfgOr = (key, envName) => (CFG && CFG[key]) || env(envName);
 
 function env(name) { return (process.env[name] || '').trim(); }
 
@@ -75,7 +78,7 @@ function embed(title, description, color = COLORS.info, fields) {
     description,
     color,
     fields: fields && fields.length ? fields : undefined,
-    footer: { text: 'Exomaly · Staff' },
+    footer: { text: (CFG && CFG.texts.footer) || 'Exomaly · Staff' },
     timestamp: new Date().toISOString(),
   };
 }
@@ -87,7 +90,7 @@ function reply(content, embeds, flags = EPHEMERAL) {
 const noPerm = () => reply('Nie masz uprawnień do tej komendy.');
 
 async function log(e) {
-  const ch = env('DISCORD_LOG_CHANNEL_ID');
+  const ch = cfgOr('logChannelId', 'DISCORD_LOG_CHANNEL_ID');
   if (!ch) return;
   try { await discord('POST', `/channels/${ch}/messages`, { embeds: [e], allowed_mentions: { parse: [] } }); } catch (err) { /* log nie może zablokować akcji */ }
 }
@@ -107,13 +110,13 @@ async function dmUser(userId, e) {
 async function openTicket(i) {
   const guild = i.guild_id;
   const user = i.member.user;
-  const category = env('DISCORD_TICKET_CATEGORY_ID');
+  const category = cfgOr('ticketCategoryId', 'DISCORD_TICKET_CATEGORY_ID');
   const base = ('ticket-' + (user.username || 'gracz')).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 90);
   const overwrites = [
     { id: guild, type: 0, allow: '0', deny: '1024' }, // @everyone nie widzi kanału
     { id: user.id, type: 1, allow: TICKET_ALLOW, deny: '0' },
   ];
-  const staffRole = env('DISCORD_STAFF_ROLE_ID');
+  const staffRole = cfgOr('staffRoleId', 'DISCORD_STAFF_ROLE_ID');
   if (staffRole) overwrites.push({ id: staffRole, type: 0, allow: TICKET_ALLOW, deny: '0' });
 
   const ch = await discord('POST', `/guilds/${guild}/channels`, {
@@ -125,8 +128,8 @@ async function openTicket(i) {
   });
   await discord('POST', `/channels/${ch.id}/messages`, {
     content: `<@${user.id}>`,
-    embeds: [embed('Witaj w tickecie', 'Opisz swoją sprawę. Staff odpowie najszybciej, jak to możliwe.', COLORS.info)],
-    components: [{ type: 1, components: [{ type: 2, style: 4, label: 'Zamknij ticket', custom_id: 'ticket_close' }] }],
+    embeds: [embed(CFG.texts.welcomeTitle, CFG.texts.welcomeDesc, COLORS.info)],
+    components: [{ type: 1, components: [{ type: 2, style: 4, label: CFG.texts.closeButton, custom_id: 'ticket_close' }] }],
     allowed_mentions: { users: [user.id] },
   });
   await log(embed('Ticket otwarty', `<#${ch.id}> · przez <@${user.id}>`, COLORS.ok));
@@ -158,8 +161,8 @@ async function onCommand(i) {
     case 'panel': {
       if (!can(m, BIT.ADMIN | BIT.MANAGE_GUILD)) return noPerm();
       await discord('POST', `/channels/${i.channel_id}/messages`, {
-        embeds: [embed('Pomoc i tickety', 'Potrzebujesz pomocy albo masz sprawę do staffu? Kliknij przycisk, a otworzymy dla Ciebie prywatny ticket.', COLORS.info)],
-        components: [{ type: 1, components: [{ type: 2, style: 1, label: 'Otwórz ticket', custom_id: 'ticket_open' }] }],
+        embeds: [embed(CFG.texts.panelTitle, CFG.texts.panelDesc, COLORS.info)],
+        components: [{ type: 1, components: [{ type: 2, style: 1, label: CFG.texts.panelButton, custom_id: 'ticket_open' }] }],
       });
       return reply('Panel opublikowany.');
     }
@@ -230,6 +233,8 @@ module.exports = async (req, res) => {
   }
 
   const raw = await readRaw(req);
+  CFG = await readSettings();
+  COLORS = Object.fromEntries(Object.entries(CFG.colors).map(([k, v]) => [k, parseInt(v.slice(1), 16)]));
   if (!verify(raw, req.headers['x-signature-ed25519'], req.headers['x-signature-timestamp'])) {
     return res.status(401).send('invalid request signature');
   }
