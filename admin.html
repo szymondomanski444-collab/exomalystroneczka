@@ -434,6 +434,7 @@ function botRender(){
       botInput('logChannelId','ID kanału logów moderacji',st.logChannelId,'kanał na logi')+
       botInput('panelChannelId','ID kanału panelu ticketów',st.panelChannelId,'gdzie publikować przycisk ticketów')+
       botInput('matchChannelId','ID kanału powiadomień o meczach',st.matchChannelId,'kanał na nowe mecze')+
+      botInput('rulesChannelId','ID kanału regulaminu',st.rulesChannelId,'gdzie opublikować regulamin')+
     '</div>'+
     '<h3 class="sub">Kolory wiadomości</h3>'+
     '<div class="grid">'+
@@ -448,12 +449,15 @@ function botRender(){
       botText('welcomeDesc','Treść wiadomości w tickecie',tx.welcomeDesc)+
       botText('closeButton','Napis na przycisku zamknięcia',tx.closeButton)+
       botText('footer','Stopka wiadomości',tx.footer)+
+      botText('rulesTitle','Tytuł regulaminu',tx.rulesTitle)+
+      '<label class="fld wide"><span>Treść regulaminu (Markdown, do 4000 znaków)</span><textarea data-bt="rulesBody" rows="8">'+esc(tx.rulesBody||'')+'</textarea></label>'+
     '</div>'+
     '<div class="addrow" style="margin-top:12px"><button type="button" class="primary" data-bot="save">Zapisz ustawienia bota</button> '+
       '<button type="button" data-bot="publish">Opublikuj panel na kanale</button> '+
       '<button type="button" data-bot="register">Zarejestruj komendy</button> '+
       '<button type="button" data-bot="matches">Sprawdź mecze teraz</button> '+
-      '<button type="button" data-bot="matchSample">Wyślij przykład na kanał</button></div>'+
+      '<button type="button" data-bot="matchSample">Wyślij przykład na kanał</button> '+
+      '<button type="button" data-bot="rules">Opublikuj regulamin</button></div>'+
     '<div class="hint" id="botMsg">'+esc(botMsgText)+'</div>'+
     '<h3 class="sub">Zbanowani</h3>'+
     (botErr?'<p class="hint err">'+esc(botErr)+'</p>':'')+
@@ -487,6 +491,12 @@ document.addEventListener('click',function(e){
     botMsg('Publikuję panel…');
     botCall({action:'publish'}).then(function(res){
       botMsg(res.ok?'Panel opublikowany na kanale.':(res.j.error||'Nie udało się opublikować.'),!res.ok);
+    }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
+  }
+  else if(act==='rules'){
+    botMsg('Publikuję regulamin…');
+    botCall({action:'publishRules'}).then(function(res){
+      botMsg(res.ok?'Regulamin opublikowany na kanale.':(res.j.error||'Nie udało się opublikować regulaminu.'),!res.ok);
     }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
   }
   else if(act==='matchSample'){

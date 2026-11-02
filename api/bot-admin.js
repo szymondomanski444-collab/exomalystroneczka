@@ -87,6 +87,25 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
+    if (body.action === 'publishRules') {
+      const s = await B.readSettings();
+      const ch = s.rulesChannelId;
+      if (!ch) return res.status(400).json({ error: 'Najpierw wpisz ID kanału regulaminu i zapisz ustawienia' });
+      const color = parseInt(s.colors.info.slice(1), 16);
+      await discord('POST', `/channels/${ch}/messages`, {
+        embeds: [{
+          author: { name: 'EXOMALY', icon_url: LOGO_URL },
+          title: s.texts.rulesTitle,
+          description: s.texts.rulesBody,
+          color,
+          thumbnail: { url: LOGO_URL },
+          footer: { text: s.texts.footer, icon_url: LOGO_URL },
+        }],
+        allowed_mentions: { parse: [] },
+      });
+      return res.status(200).json({ ok: true });
+    }
+
     if (body.action === 'matchSample') {
       const out = await sendSample();
       return res.status(out.ok ? 200 : 400).json(out);
