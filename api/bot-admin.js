@@ -88,6 +88,16 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true });
     }
 
+    if (body.action === 'resetTexts') {
+      // przywraca domyślne wartości wskazanych tekstów (zapisane wcześniej kopie nadpisują nowe domyślne)
+      const keys = Array.isArray(body.keys) ? body.keys : [];
+      const allowed = ['panelTitle', 'panelDesc', 'panelButton', 'rulesTitle', 'rulesIntro', 'rulesBody'];
+      const s = await B.readSettings();
+      for (const k of keys) if (allowed.includes(k)) s.texts[k] = B.DEFAULTS.texts[k];
+      await B.writeSettings(s);
+      return res.status(200).json({ ok: true, settings: s });
+    }
+
     if (body.action === 'publishRules') {
       const s = await B.readSettings();
       const ch = s.rulesChannelId;

@@ -458,7 +458,8 @@ function botRender(){
       '<button type="button" data-bot="register">Zarejestruj komendy</button> '+
       '<button type="button" data-bot="matches">Sprawdź mecze teraz</button> '+
       '<button type="button" data-bot="matchSample">Wyślij przykład na kanał</button> '+
-      '<button type="button" data-bot="rules">Opublikuj regulamin</button></div>'+
+      '<button type="button" data-bot="rules">Opublikuj regulamin</button> '+
+      '<button type="button" data-bot="resetRules">Przywróć domyślne teksty panelu i regulaminu</button></div>'+
     '<div class="hint" id="botMsg">'+esc(botMsgText)+'</div>'+
     '<h3 class="sub">Zbanowani</h3>'+
     (botErr?'<p class="hint err">'+esc(botErr)+'</p>':'')+
@@ -492,6 +493,14 @@ document.addEventListener('click',function(e){
     botMsg('Publikuję panel…');
     botCall({action:'publish'}).then(function(res){
       botMsg(res.ok?'Panel opublikowany na kanale.':(res.j.error||'Nie udało się opublikować.'),!res.ok);
+    }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
+  }
+  else if(act==='resetRules'){
+    if(!confirm('Przywrócić domyślne teksty panelu i regulaminu? Twoje zmiany w tych polach zostaną nadpisane.')) return;
+    botMsg('Przywracam domyślne teksty…');
+    botCall({action:'resetTexts',keys:['panelTitle','panelDesc','panelButton','rulesTitle','rulesIntro','rulesBody']}).then(function(res){
+      if(!res.ok){ botMsg((res.j&&res.j.error)||'Nie udało się przywrócić tekstów.',true); return; }
+      botState=res.j.settings; botRender(); botMsg('Przywrócono domyślne teksty. Opublikuj panel i regulamin ponownie.');
     }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
   }
   else if(act==='rules'){
