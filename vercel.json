@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/match-notify", "schedule": "0 9 * * *" }
+  ]
+}

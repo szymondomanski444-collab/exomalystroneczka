@@ -433,6 +433,7 @@ function botRender(){
       botInput('ticketCategoryId','ID kategorii ticketów',st.ticketCategoryId,'kategoria na kanały ticketów')+
       botInput('logChannelId','ID kanału logów moderacji',st.logChannelId,'kanał na logi')+
       botInput('panelChannelId','ID kanału panelu ticketów',st.panelChannelId,'gdzie publikować przycisk ticketów')+
+      botInput('matchChannelId','ID kanału powiadomień o meczach',st.matchChannelId,'kanał na nowe mecze')+
     '</div>'+
     '<h3 class="sub">Kolory wiadomości</h3>'+
     '<div class="grid">'+
@@ -450,7 +451,8 @@ function botRender(){
     '</div>'+
     '<div class="addrow" style="margin-top:12px"><button type="button" class="primary" data-bot="save">Zapisz ustawienia bota</button> '+
       '<button type="button" data-bot="publish">Opublikuj panel na kanale</button> '+
-      '<button type="button" data-bot="register">Zarejestruj komendy</button></div>'+
+      '<button type="button" data-bot="register">Zarejestruj komendy</button> '+
+      '<button type="button" data-bot="matches">Sprawdź mecze teraz</button></div>'+
     '<div class="hint" id="botMsg">'+esc(botMsgText)+'</div>'+
     '<h3 class="sub">Zbanowani</h3>'+
     (botErr?'<p class="hint err">'+esc(botErr)+'</p>':'')+
@@ -484,6 +486,16 @@ document.addEventListener('click',function(e){
     botMsg('Publikuję panel…');
     botCall({action:'publish'}).then(function(res){
       botMsg(res.ok?'Panel opublikowany na kanale.':(res.j.error||'Nie udało się opublikować.'),!res.ok);
+    }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
+  }
+  else if(act==='matches'){
+    botMsg('Sprawdzam mecze…');
+    botCall({action:'matches'}).then(function(res){
+      var j=res.j||{};
+      if(!res.ok){ botMsg(j.error||'Nie udało się sprawdzić meczów.',true); return; }
+      if(j.skipped){ botMsg(j.skipped,true); return; }
+      if(j.seeded!==undefined){ botMsg('Zapamiętano obecne mecze ('+j.seeded+'). Od teraz nowe mecze będą wysyłane na kanał.'); return; }
+      botMsg(j.sent?('Wysłano powiadomień: '+j.sent+'.'):'Brak nowych meczów.',!j.ok);
     }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
   }
   else if(act==='register'){
