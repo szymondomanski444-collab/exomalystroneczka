@@ -469,9 +469,9 @@ async function onButton(i) {
         embeds: [{
           author: { name: 'EXOMALY · Regulamin', icon_url: LOGO_URL },
           title: f.name,
-          description: f.value,
+          description: (f.value || '').trim() || 'Brak szczegółów.',
           color: COLORS.info,
-          footer: { text: CFG.texts.footer },
+          footer: { text: CFG.texts.footer || 'Exomaly · Staff' },
         }],
         flags: EPHEMERAL,
         allowed_mentions: { parse: [] },
