@@ -145,9 +145,43 @@ async function openTicket(i, catValue) {
   return reply(`Ticket utworzony: <#${ch.id}>`);
 }
 
-async function closeTicket(i) {
+// Zamknięcie ticketa pyta najpierw o powód (modal), potem wysyła go do logu i na kanał.
+const CLOSE_MODAL = 'ticket_close_modal';
+
+function closeModal() {
+  return {
+    type: 9,
+    data: {
+      custom_id: CLOSE_MODAL,
+      title: 'Zamknij ticket',
+      components: [{
+        type: 1,
+        components: [{
+          type: 4,
+          custom_id: 'reason',
+          style: 2,
+          label: 'Powód zamknięcia',
+          placeholder: 'np. sprawa załatwiona, brak odpowiedzi',
+          required: true,
+          min_length: 3,
+          max_length: 300,
+        }],
+      }],
+    },
+  };
+}
+
+async function closeTicket(i, reasonRaw) {
   const who = i.member && i.member.user;
-  await log(embed('Ticket zamknięty', `Kanał: ${i.channel && i.channel.name ? '#' + i.channel.name : i.channel_id}\nPrzez: <@${who && who.id}>`, COLORS.bad));
+  const reason = String(reasonRaw || '').trim().slice(0, 300) || 'brak powodu';
+  const name = i.channel && i.channel.name ? '#' + i.channel.name : i.channel_id;
+  await log(embed('Ticket zamknięty', `Kanał: ${name}\nPrzez: <@${who && who.id}>\nPowód: ${reason}`, COLORS.bad));
+  try {
+    await discord('POST', `/channels/${i.channel_id}/messages`, {
+      embeds: [embed('Ticket zamknięty', `Zamknął: <@${who && who.id}>\nPowód: ${reason}`, COLORS.bad)],
+      allowed_mentions: { parse: [] },
+    });
+  } catch (e) { /* komunikat nie może zablokować zamknięcia */ }
   await discord('DELETE', `/channels/${i.channel_id}`);
   return reply('Ticket zamknięty.');
 }
@@ -223,6 +257,13 @@ async function onCommand(i) {
   }
 }
 
+async function onModal(i) {
+  if (i.data.custom_id !== CLOSE_MODAL) return reply('Nieznany formularz.');
+  const row = (i.data.components || [])[0];
+  const field = row && (row.components || [])[0];
+  return closeTicket(i, field && field.value);
+}
+
 async function onButton(i) {
   // ticket_open: stary przycisk z wcześniej opublikowanych paneli, bez kategorii
   if (i.data.custom_id === 'ticket_open' || i.data.custom_id === 'ticket_pick') {
@@ -230,7 +271,7 @@ async function onButton(i) {
     const picked = (i.data.values && i.data.values[0]) || null;
     return openTicket(i, i.data.custom_id === 'ticket_pick' ? picked : null);
   }
-  if (i.data.custom_id === 'ticket_close') return closeTicket(i);
+  if (i.data.custom_id === 'ticket_close') return closeModal();
   return reply('Nieznany przycisk.');
 }
 
@@ -260,6 +301,7 @@ module.exports = async (req, res) => {
     let out;
     if (i.type === 2) out = await onCommand(i);
     else if (i.type === 3) out = await onButton(i);
+    else if (i.type === 5) out = await onModal(i);
     else out = reply('Nieobsługiwane żądanie.');
     return res.status(200).json(out);
   } catch (e) {
