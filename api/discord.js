@@ -24,7 +24,7 @@ const BIT = {
 };
 const STAFF = BIT.ADMIN | BIT.KICK | BIT.BAN | BIT.MANAGE_MESSAGES | BIT.MODERATE;
 const TICKET_ALLOW = String(1024n + 2048n + 65536n); // widok kanału, pisanie, historia
-let COLORS = { info: 0x5865f2, ok: 0x57f287, warn: 0xfee75c, bad: 0xed4245 };
+let COLORS = { info: 0xffffff, ok: 0x57f287, warn: 0xfee75c, bad: 0xed4245 };
 let CFG = null; // ustawienia z panelu admina (ładowane przy każdym żądaniu)
 const cfgOr = (key, envName) => (CFG && CFG[key]) || env(envName);
 
@@ -72,15 +72,21 @@ function can(member, bits) {
   try { return (BigInt((member && member.permissions) || '0') & bits) !== 0n; } catch (e) { return false; }
 }
 
-function embed(title, description, color = COLORS.info, fields) {
-  return {
+// Logo strony (publiczny plik w repo) - Discord pobiera je sam, więc musi być pod stałym adresem.
+const LOGO_URL = 'https://exomaly.pl/favicon-512.png';
+
+function embed(title, description, color = COLORS.info, fields, thumbnail = false) {
+  const e = {
+    author: { name: 'EXOMALY', icon_url: LOGO_URL },
     title,
     description,
     color,
     fields: fields && fields.length ? fields : undefined,
-    footer: { text: (CFG && CFG.texts.footer) || 'Exomaly · Staff' },
+    footer: { text: (CFG && CFG.texts.footer) || 'Exomaly · Staff', icon_url: LOGO_URL },
     timestamp: new Date().toISOString(),
   };
+  if (thumbnail) e.thumbnail = { url: LOGO_URL };
+  return e;
 }
 
 function reply(content, embeds, flags = EPHEMERAL) {
@@ -128,8 +134,8 @@ async function openTicket(i) {
   });
   await discord('POST', `/channels/${ch.id}/messages`, {
     content: `<@${user.id}>`,
-    embeds: [embed(CFG.texts.welcomeTitle, CFG.texts.welcomeDesc, COLORS.info)],
-    components: [{ type: 1, components: [{ type: 2, style: 4, label: CFG.texts.closeButton, custom_id: 'ticket_close' }] }],
+    embeds: [embed(CFG.texts.welcomeTitle, CFG.texts.welcomeDesc, COLORS.info, null, true)],
+    components: [{ type: 1, components: [{ type: 2, style: 4, label: CFG.texts.closeButton, emoji: { name: '🔒' }, custom_id: 'ticket_close' }] }],
     allowed_mentions: { users: [user.id] },
   });
   await log(embed('Ticket otwarty', `<#${ch.id}> · przez <@${user.id}>`, COLORS.ok));
@@ -161,8 +167,8 @@ async function onCommand(i) {
     case 'panel': {
       if (!can(m, BIT.ADMIN | BIT.MANAGE_GUILD)) return noPerm();
       await discord('POST', `/channels/${i.channel_id}/messages`, {
-        embeds: [embed(CFG.texts.panelTitle, CFG.texts.panelDesc, COLORS.info)],
-        components: [{ type: 1, components: [{ type: 2, style: 1, label: CFG.texts.panelButton, custom_id: 'ticket_open' }] }],
+        embeds: [embed(CFG.texts.panelTitle, CFG.texts.panelDesc, COLORS.info, null, true)],
+        components: [{ type: 1, components: [{ type: 2, style: 1, label: CFG.texts.panelButton, emoji: { name: '🎫' }, custom_id: 'ticket_open' }] }],
       });
       return reply('Panel opublikowany.');
     }

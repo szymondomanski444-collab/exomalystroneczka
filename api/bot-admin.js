@@ -5,6 +5,7 @@ const B = require('../lib/bot-settings.js');
 
 const API = 'https://discord.com/api/v10';
 const env = (n) => (process.env[n] || '').trim();
+const LOGO_URL = 'https://exomaly.pl/favicon-512.png'; // ten sam logo co w discord.js
 
 function readBody(req) {
   let b = req.body;
@@ -72,13 +73,15 @@ module.exports = async (req, res) => {
       const color = parseInt(s.colors.info.slice(1), 16);
       await discord('POST', `/channels/${ch}/messages`, {
         embeds: [{
+          author: { name: 'EXOMALY', icon_url: LOGO_URL },
           title: s.texts.panelTitle,
           description: s.texts.panelDesc,
           color,
-          footer: { text: s.texts.footer },
+          thumbnail: { url: LOGO_URL },
+          footer: { text: s.texts.footer, icon_url: LOGO_URL },
           timestamp: new Date().toISOString(),
         }],
-        components: [{ type: 1, components: [{ type: 2, style: 1, label: s.texts.panelButton, custom_id: 'ticket_open' }] }],
+        components: [{ type: 1, components: [{ type: 2, style: 1, label: s.texts.panelButton, emoji: { name: '🎫' }, custom_id: 'ticket_open' }] }],
       });
       return res.status(200).json({ ok: true });
     }
