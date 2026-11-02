@@ -450,7 +450,8 @@ function botRender(){
       botText('closeButton','Napis na przycisku zamknięcia',tx.closeButton)+
       botText('footer','Stopka wiadomości',tx.footer)+
       botText('rulesTitle','Tytuł regulaminu',tx.rulesTitle)+
-      '<label class="fld wide"><span>Treść regulaminu (Markdown, do 4000 znaków)</span><textarea data-bt="rulesBody" rows="8">'+esc(tx.rulesBody||'')+'</textarea></label>'+
+      botText('rulesIntro','Wstęp regulaminu (nad zasadami)',tx.rulesIntro)+
+      '<label class="fld wide"><span>Zasady: każdy blok to osobny punkt. Pierwsza linia bloku to tytuł, reszta to treść. Bloki oddziel pustą linią</span><textarea data-bt="rulesBody" rows="8">'+esc(tx.rulesBody||'')+'</textarea></label>'+
     '</div>'+
     '<div class="addrow" style="margin-top:12px"><button type="button" class="primary" data-bot="save">Zapisz ustawienia bota</button> '+
       '<button type="button" data-bot="publish">Opublikuj panel na kanale</button> '+

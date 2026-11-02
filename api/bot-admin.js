@@ -2,6 +2,7 @@
 // Dostęp: właściciel albo admin (jak reszta panelu). Token bota zostaje w zmiennych Vercela.
 const L = require('../lib/admins.js');
 const B = require('../lib/bot-settings.js');
+const BANNER_URL = 'https://exomaly.pl/og-image.png';
 const { checkMatches, sendSample } = require('../lib/match-notify.js');
 
 const API = 'https://discord.com/api/v10';
@@ -95,11 +96,14 @@ module.exports = async (req, res) => {
       await discord('POST', `/channels/${ch}/messages`, {
         embeds: [{
           author: { name: 'EXOMALY', icon_url: LOGO_URL },
-          title: s.texts.rulesTitle,
-          description: s.texts.rulesBody,
+          title: '📜 ' + s.texts.rulesTitle,
+          description: s.texts.rulesIntro,
           color,
+          fields: B.rulesFields(s.texts.rulesBody),
+          image: { url: BANNER_URL },
           thumbnail: { url: LOGO_URL },
-          footer: { text: s.texts.footer, icon_url: LOGO_URL },
+          footer: { text: s.texts.footer + ' · Regulamin', icon_url: LOGO_URL },
+          timestamp: new Date().toISOString(),
         }],
         allowed_mentions: { parse: [] },
       });
