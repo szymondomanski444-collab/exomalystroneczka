@@ -10,7 +10,7 @@
 // Uprawnienia do komend sprawdzane są po uprawnieniach użytkownika na serwerze (bit w member.permissions).
 
 const crypto = require('crypto');
-const { readSettings, TICKET_CATEGORIES, panelComponents, rulesFields } = require('../lib/bot-settings.js');
+const { readSettings, TICKET_CATEGORIES, panelComponents, rulesFields, rolesFromText } = require('../lib/bot-settings.js');
 const { addWarn, listWarns } = require('../lib/warns.js');
 // waitUntil pozwala dokończyć zamykanie ticketa po odpowiedzi do Discorda (limit 3 s na odpowiedź)
 let waitUntil = null;
@@ -379,7 +379,71 @@ function modalReason(i) {
   return field && field.value;
 }
 
+// Nabór: formularz zgłoszenia na wybrane stanowisko -------------------------
+
+const txt = (v, n) => String(v || '').trim().slice(0, n);
+
+function applyModal(idx, role) {
+  const row = (id, label, style, required, max) => ({
+    type: 1,
+    components: [{ type: 4, custom_id: id, style, label, required, max_length: max }],
+  });
+  return {
+    type: 9,
+    data: {
+      custom_id: 'recruit_apply:' + idx,
+      title: role.name.slice(0, 45),
+      components: [
+        row('nick', 'Nick i wiek', 1, true, 100),
+        row('exp', 'Doświadczenie', 2, true, 1000),
+        row('why', 'Dlaczego Ty?', 2, true, 1000),
+        row('contact', 'Kontakt (Discord lub inny)', 1, false, 100),
+      ],
+    },
+  };
+}
+
+async function onRecruitPick(i) {
+  if (!i.member) return reply('Zgłoszenia działają tylko na serwerze.');
+  const roles = rolesFromText(CFG.recruitRoles);
+  const role = roles[parseInt((i.data.values || [])[0], 10)];
+  if (!role) return reply('To stanowisko nie jest już dostępne.');
+  return applyModal(parseInt((i.data.values || [])[0], 10), role);
+}
+
+async function onRecruitSubmit(i) {
+  const idx = parseInt(i.data.custom_id.slice('recruit_apply:'.length), 10);
+  const role = rolesFromText(CFG.recruitRoles)[idx];
+  if (!role) return reply('To stanowisko nie jest już dostępne.');
+  const ch = CFG.recruitChannelId;
+  if (!ch) return reply('Nabór nie jest jeszcze skonfigurowany. Spróbuj później.');
+  const answers = {};
+  for (const row of i.data.components || []) {
+    for (const c of row.components || []) answers[c.custom_id] = txt(c.value, 1000);
+  }
+  const user = i.member && i.member.user;
+  await discord('POST', `/channels/${ch}/messages`, {
+    embeds: [{
+      author: { name: 'EXOMALY · Nabór', icon_url: LOGO_URL },
+      title: 'Nowe zgłoszenie: ' + role.name,
+      description: 'Od: <@' + (user && user.id) + '>',
+      color: COLORS.info,
+      fields: [
+        { name: 'Nick i wiek', value: answers.nick || '-', inline: false },
+        { name: 'Doświadczenie', value: answers.exp || '-', inline: false },
+        { name: 'Dlaczego Ty?', value: answers.why || '-', inline: false },
+        { name: 'Kontakt', value: answers.contact || '-', inline: true },
+      ],
+      footer: { text: (CFG && CFG.texts.footer) || 'Exomaly · Staff', icon_url: LOGO_URL },
+      timestamp: new Date().toISOString(),
+    }],
+    allowed_mentions: { parse: [] },
+  });
+  return reply('Zgłoszenie wysłane. Dziękujemy, odezwiemy się!');
+}
+
 async function onModal(i) {
+  if (i.data.custom_id.startsWith('recruit_apply:')) return onRecruitSubmit(i);
   if (i.data.custom_id !== CLOSE_MODAL) return reply('Nieznany formularz.');
   const row = (i.data.components || [])[0];
   const field = row && (row.components || [])[0];
@@ -393,6 +457,7 @@ async function onButton(i) {
     const picked = (i.data.values && i.data.values[0]) || null;
     return openTicket(i, i.data.custom_id === 'ticket_pick' ? picked : null);
   }
+  if (i.data.custom_id === 'recruit_pick') return onRecruitPick(i);
   if (i.data.custom_id === 'ticket_close') return closeModal();
   // kategoria regulaminu: zasady widoczne tylko dla klikającego
   if (i.data.custom_id.startsWith('rule:')) {

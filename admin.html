@@ -435,6 +435,8 @@ function botRender(){
       botInput('panelChannelId','ID kanału panelu ticketów',st.panelChannelId,'gdzie publikować przycisk ticketów')+
       botInput('matchChannelId','ID kanału powiadomień o meczach',st.matchChannelId,'kanał na nowe mecze')+
       botInput('rulesChannelId','ID kanału regulaminu',st.rulesChannelId,'gdzie opublikować regulamin')+
+      botInput('recruitPanelChannelId','ID kanału panelu naboru',st.recruitPanelChannelId,'gdzie publikować panel naboru')+
+      botInput('recruitChannelId','ID kanału zgłoszeń naboru',st.recruitChannelId,'gdzie trafiają zgłoszenia (tylko staff)')+
     '</div>'+
     '<h3 class="sub">Kolory wiadomości</h3>'+
     '<div class="grid">'+
@@ -449,6 +451,10 @@ function botRender(){
       botText('welcomeDesc','Treść wiadomości w tickecie',tx.welcomeDesc)+
       botText('closeButton','Napis na przycisku zamknięcia',tx.closeButton)+
       botText('footer','Stopka wiadomości',tx.footer)+
+      botText('recruitTitle','Tytuł panelu naboru',tx.recruitTitle)+
+      botText('recruitDesc','Opis panelu naboru',tx.recruitDesc)+
+      botText('recruitButton','Podpowiedź w menu stanowisk',tx.recruitButton)+
+      '<label class="fld wide"><span>Stanowiska naboru (jedna linia = Nazwa | opis, max 25)</span><textarea data-bf="recruitRoles" rows="4">'+esc(st.recruitRoles||'')+'</textarea></label>'+
       botText('rulesTitle','Tytuł regulaminu',tx.rulesTitle)+
       botText('rulesIntro','Wstęp regulaminu (nad zasadami)',tx.rulesIntro)+
       '<label class="fld wide"><span>Zasady: każdy blok to osobny punkt. Pierwsza linia bloku to tytuł, reszta to treść. Bloki oddziel pustą linią</span><textarea data-bt="rulesBody" rows="8">'+esc(tx.rulesBody||'')+'</textarea></label>'+
@@ -459,7 +465,8 @@ function botRender(){
       '<button type="button" data-bot="matches">Sprawdź mecze teraz</button> '+
       '<button type="button" data-bot="matchSample">Wyślij przykład na kanał</button> '+
       '<button type="button" data-bot="rules">Opublikuj regulamin</button> '+
-      '<button type="button" data-bot="resetRules">Przywróć domyślne teksty panelu i regulaminu</button></div>'+
+      '<button type="button" data-bot="resetRules">Przywróć domyślne teksty panelu i regulaminu</button> '+
+      '<button type="button" data-bot="recruit">Opublikuj panel naboru</button></div>'+
     '<div class="hint" id="botMsg">'+esc(botMsgText)+'</div>'+
     '<h3 class="sub">Zbanowani</h3>'+
     (botErr?'<p class="hint err">'+esc(botErr)+'</p>':'')+
@@ -493,6 +500,12 @@ document.addEventListener('click',function(e){
     botMsg('Publikuję panel…');
     botCall({action:'publish'}).then(function(res){
       botMsg(res.ok?'Panel opublikowany na kanale.':(res.j.error||'Nie udało się opublikować.'),!res.ok);
+    }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
+  }
+  else if(act==='recruit'){
+    botMsg('Publikuję panel naboru…');
+    botCall({action:'publishRecruit'}).then(function(res){
+      botMsg(res.ok?'Panel naboru opublikowany na kanale.':(res.j.error||'Nie udało się opublikować panelu naboru.'),!res.ok);
     }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
   }
   else if(act==='resetRules'){

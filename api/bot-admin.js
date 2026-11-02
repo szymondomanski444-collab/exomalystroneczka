@@ -91,11 +91,32 @@ module.exports = async (req, res) => {
     if (body.action === 'resetTexts') {
       // przywraca domyślne wartości wskazanych tekstów (zapisane wcześniej kopie nadpisują nowe domyślne)
       const keys = Array.isArray(body.keys) ? body.keys : [];
-      const allowed = ['panelTitle', 'panelDesc', 'panelButton', 'rulesTitle', 'rulesIntro', 'rulesBody'];
+      const allowed = ['panelTitle', 'panelDesc', 'panelButton', 'rulesTitle', 'rulesIntro', 'rulesBody', 'recruitTitle', 'recruitDesc', 'recruitButton'];
       const s = await B.readSettings();
       for (const k of keys) if (allowed.includes(k)) s.texts[k] = B.DEFAULTS.texts[k];
       await B.writeSettings(s);
       return res.status(200).json({ ok: true, settings: s });
+    }
+
+    if (body.action === 'publishRecruit') {
+      const s = await B.readSettings();
+      const ch = s.recruitPanelChannelId;
+      if (!ch) return res.status(400).json({ error: 'Najpierw wpisz ID kanału panelu naboru i zapisz ustawienia' });
+      const color = parseInt(s.colors.info.slice(1), 16);
+      await discord('POST', `/channels/${ch}/messages`, {
+        embeds: [{
+          author: { name: 'EXOMALY', icon_url: LOGO_URL },
+          title: s.texts.recruitTitle,
+          description: s.texts.recruitDesc,
+          color,
+          thumbnail: { url: LOGO_URL },
+          footer: { text: s.texts.footer, icon_url: LOGO_URL },
+          timestamp: new Date().toISOString(),
+        }],
+        components: B.recruitComponents(s),
+        allowed_mentions: { parse: [] },
+      });
+      return res.status(200).json({ ok: true });
     }
 
     if (body.action === 'publishRules') {
