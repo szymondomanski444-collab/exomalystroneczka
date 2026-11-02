@@ -2,7 +2,7 @@
 // Dostęp: właściciel albo admin (jak reszta panelu). Token bota zostaje w zmiennych Vercela.
 const L = require('../lib/admins.js');
 const B = require('../lib/bot-settings.js');
-const { checkMatches } = require('../lib/match-notify.js');
+const { checkMatches, sendSample } = require('../lib/match-notify.js');
 
 const API = 'https://discord.com/api/v10';
 const env = (n) => (process.env[n] || '').trim();
@@ -85,6 +85,11 @@ module.exports = async (req, res) => {
         components: B.panelComponents(s),
       });
       return res.status(200).json({ ok: true });
+    }
+
+    if (body.action === 'matchSample') {
+      const out = await sendSample();
+      return res.status(out.ok ? 200 : 400).json(out);
     }
 
     if (body.action === 'matches') {

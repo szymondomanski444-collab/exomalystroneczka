@@ -452,7 +452,8 @@ function botRender(){
     '<div class="addrow" style="margin-top:12px"><button type="button" class="primary" data-bot="save">Zapisz ustawienia bota</button> '+
       '<button type="button" data-bot="publish">Opublikuj panel na kanale</button> '+
       '<button type="button" data-bot="register">Zarejestruj komendy</button> '+
-      '<button type="button" data-bot="matches">Sprawdź mecze teraz</button></div>'+
+      '<button type="button" data-bot="matches">Sprawdź mecze teraz</button> '+
+      '<button type="button" data-bot="matchSample">Wyślij przykład na kanał</button></div>'+
     '<div class="hint" id="botMsg">'+esc(botMsgText)+'</div>'+
     '<h3 class="sub">Zbanowani</h3>'+
     (botErr?'<p class="hint err">'+esc(botErr)+'</p>':'')+
@@ -486,6 +487,12 @@ document.addEventListener('click',function(e){
     botMsg('Publikuję panel…');
     botCall({action:'publish'}).then(function(res){
       botMsg(res.ok?'Panel opublikowany na kanale.':(res.j.error||'Nie udało się opublikować.'),!res.ok);
+    }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
+  }
+  else if(act==='matchSample'){
+    botMsg('Wysyłam przykład…');
+    botCall({action:'matchSample'}).then(function(res){
+      botMsg(res.ok?'Przykład wysłany na kanał powiadomień.':(res.j.error||'Nie udało się wysłać przykładu.'),!res.ok);
     }).catch(function(){ botMsg('Brak połączenia z serwerem.',true); });
   }
   else if(act==='matches'){
