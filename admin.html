@@ -299,6 +299,9 @@ function render(){
     [10,15,20,30,60].map(function(n){ return '<option value="'+n+'"'+(String(S.ustawienia.tloCzas||20)===String(n)?' selected':'')+'>'+n+' s</option>'; }).join('')+
     '</select></label>'+
     '<label class="fld"><span>Link do własnego zdjęcia (https://…), używany gdy wybrane jest „Własne zdjęcie"</span><input data-path="ustawienia.tloUrl" value="'+esc(S.ustawienia.tloUrl||'')+'"></label>');
+  h+=section('Bot Discorda',
+    '<p class="hint">Rejestruje komendy /panel, /warn, /timeout, /kick, /ban i /purge na serwerze. Wystarczy raz albo po zmianie komend. Token bota zostaje w Vercelu.</p>'+
+    '<div class="addrow"><button type="button" class="primary" id="regBtn">Zarejestruj komendy</button></div><div class="hint" id="regMsg"></div>');
   LISTS.forEach(function(sec){
     var extra=sec.k==='terminarz'?'<button type="button" class="danger" data-act="endnow">Usuń trwający mecz</button>':'';
     h+=section(sec.t,'<div class="addrow"><button type="button" class="primary" data-act="add" data-k="'+sec.k+'">+ Dodaj</button> '+extra+'</div>'+listHTML(sec));
@@ -374,6 +377,16 @@ $('editor').addEventListener('change',function(e){
     S[k][i].zdjecie=d; saveDraft(); render();
     status('Zdjęcie wgrane. Kliknij „Zapisz na stronie”, żeby było widoczne.');
   });
+});
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('#regBtn'); if(!b) return;
+  var m=document.getElementById('regMsg'); b.disabled=true; m.textContent='Rejestruję komendy…';
+  fetch(API+'discord-register',{method:'POST',headers:{'x-admin-pass':pass()}})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,j:j}; }); })
+    .then(function(res){ m.textContent=res.ok?('Gotowe: komendy zarejestrowane ('+res.j.commands+').'):(res.j.error||'Błąd rejestracji.')+(res.j.details?' '+res.j.details:''); })
+    .catch(function(){ m.textContent='Brak połączenia z serwerem.'; })
+    .then(function(){ b.disabled=false; });
 });
 
 $('save').addEventListener('click',function(){
