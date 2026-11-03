@@ -164,7 +164,7 @@ details.sec{margin-top:0}
     <div class="pvbar">
           <label><input type="checkbox" id="live" checked style="width:auto"> Podgląd na żywo</label>
           <select id="pvView">
-            <option value="home">Start</option><option value="sklad">Skład</option><option value="mecze">Mecze</option>
+            <option value="home">Start</option><option value="sklad">Skład</option><option value="zarzad">Zarząd</option><option value="mecze">Mecze</option>
             <option value="onas">O nas</option><option value="partnerzy">Partnerzy</option><option value="aktualnosci">Aktualności</option><option value="kontakt">Kontakt</option><option value="prywatnosc">Prywatność</option>
           </select>
         </div>
@@ -192,6 +192,7 @@ var LISTS=[
   {k:'terminarz',t:'Terminarz (przyszłe mecze)',f:[{n:'data',l:'Data i godzina (RRRR-MM-DD GG:MM)'},{n:'przeciwnik',l:'Przeciwnik'},{n:'mapa',l:'Mapa'}],nf:{data:'',przeciwnik:'',mapa:''}},
   {k:'wyniki',t:'Wyniki',f:[{n:'data',l:'Data (RRRR-MM-DD)'},{n:'przeciwnik',l:'Przeciwnik'},{n:'mapa',l:'Mapa'},{n:'my',l:'Nasze rundy',num:1},{n:'oni',l:'Rundy przeciwnika',num:1}],nf:{data:'',przeciwnik:'',mapa:'',my:0,oni:0}},
   {k:'osiagniecia',t:'Osiągnięcia (oś czasu)',f:[{n:'data',l:'Data (rok lub RRRR-MM-DD)'},{n:'tytul',l:'Tytuł osiągnięcia'},{n:'opis',l:'Opis (opcjonalnie)',area:1}],nf:{data:'',tytul:'',opis:''}},
+  {k:'zarzad',t:'Zarząd (osoby zarządzające projektem)',f:[{n:'nick',l:'Imię lub nick'},{n:'rola',l:'Stanowisko (np. Project Manager)'},{n:'zdjecie',l:'Zdjęcie (ścieżka lub adres)'},{n:'opis',l:'Opis (czym się zajmuje)',area:1}],nf:{nick:'',rola:'',zdjecie:'',opis:''}},
   {k:'partnery',t:'Partnerzy',f:[{n:'nazwa',l:'Nazwa'},{n:'logo',l:'Logo (ścieżka lub adres)'},{n:'link',l:'Link (opcjonalnie)'}],nf:{nazwa:'',logo:'',link:''}}
 ];
 function normalize(o){
@@ -249,7 +250,7 @@ function field(k,i,f,val){
   var input=f.area?'<textarea'+attrs+'>'+esc(v)+'</textarea>':isDate?'<input type="datetime-local"'+attrs+' value="'+esc(String(v).replace(' ','T'))+'">':'<input'+(f.num?' type="number" min="0" step="1"':'')+attrs+' value="'+esc(v)+'">';
   return '<label class="fld'+(f.area?' wide':'')+'"><span>'+esc(f.l)+'</span>'+input+'</label>';
 }
-var PHOTO_SECS=['skladGlowny','akademia'];
+var PHOTO_SECS=['skladGlowny','akademia','zarzad'];
 function photoBlock(k,i,src,a){
   return '<div class="photo">'+
     (src?'<img class="pthumb" src="'+esc(src)+'" alt="">':'<span class="nophoto">Brak zdjęcia</span>')+

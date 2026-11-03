@@ -253,6 +253,7 @@ h2.sec { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 
 .pl dt { font-size: .62rem; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
 .pl dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
 .pl dl { align-items: flex-end; justify-content: space-between; }
+.zopis { color: var(--muted); font-size: .9rem; line-height: 1.6; margin-top: 10px; white-space: pre-line; }
 .nomatch { position: relative; margin: 24px 0 4px; padding: 22px 16px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; display: grid; gap: 4px; }
 .nomatch b { font-family: var(--f-display); font-weight: 500; font-size: 1.15rem; }
 .nomatch span { color: var(--muted); font-size: .88rem; }
@@ -622,6 +623,7 @@ body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::bef
       <button type="button" role="tab" data-go="tabela">Tabela</button>
     <button type="button" role="tab" data-go="onas">O nas</button>
     <button type="button" role="tab" data-go="osiagniecia">Osiągnięcia</button>
+    <button type="button" role="tab" data-go="zarzad">Zarząd</button>
     <button type="button" role="tab" data-go="partnerzy">Partnerzy</button>
     <button type="button" role="tab" data-go="aktualnosci">Aktualności</button>
     <button type="button" role="tab" data-go="kontakt">Kontakt</button>
@@ -746,6 +748,13 @@ body[data-motyw="halloween"] .stat::before,body[data-motyw="halloween"] .nw::bef
       <div class="priv-sec"><h3>10. Zmiany polityki</h3><p>Politykę prywatności możemy aktualizować. Aktualna wersja jest zawsze dostępna na tej stronie.</p></div>
       <p class="priv-upd">Data ostatniej aktualizacji: 25.10.2026</p>
     </article>
+  </section>
+
+  <section class="view" data-view="zarzad">
+    <div class="head2 a" style="--i:0">
+      <div><p class="eyebrow">Ludzie za projektem</p><h2 class="sec">Zarząd</h2></div>
+    </div>
+    <div class="roster" id="zarzadBox"></div>
   </section>
 
   <section class="view" data-view="partnerzy">
@@ -1039,6 +1048,18 @@ function card(p,i){
     (p.rola?'<span class="role">'+esc(p.rola)+'</span>':'')+
     '<div class="info"><h3>'+esc(p.nick)+'</h3><p>'+esc(p.imie||'')+'</p><dl>'+fc+'</dl></div></article>';
 }
+function renderZarzad(){
+  var arr=list('zarzad');
+  $('zarzadBox').innerHTML=arr.length?arr.map(function(p){
+    var photo=p.zdjecie?'<img class="ph" src="'+esc(p.zdjecie)+'" alt="'+esc(p.nick||'')+'" loading="lazy">':'';
+    return '<article class="pl"><div class="art">'+photo+'</div><div class="info">'+
+      '<h3>'+esc(p.nick||'')+'</h3>'+
+      (p.rola?'<p>'+esc(p.rola)+'</p>':'')+
+      (p.opis?'<div class="zopis">'+esc(p.opis)+'</div>':'')+
+      '</div></article>';
+  }).join(''):'<div class="empty2">Brak osób w zarządzie. Dodaj je w panelu admina.</div>';
+  bindTilt('#zarzadBox .pl');
+}
 function renderRoster(){
   var arr=SQ==='main'?MAIN:ACAD;
   $('roster').innerHTML=arr.length?arr.map(card).join(''):'<div class="empty2">Brak zawodników w tej grupie. Dodaj ich w panelu admina.</div>';
@@ -1175,12 +1196,13 @@ function loadTable(){
 }
 
 /* ---------- zakładki ---------- */
-var VIEWS=['home','sklad','mecze','tabela','onas','osiagniecia','partnerzy','aktualnosci','kontakt','prywatnosc'];
+var VIEWS=['home','sklad','zarzad','mecze','tabela','onas','osiagniecia','partnerzy','aktualnosci','kontakt','prywatnosc'];
 function go(name,push){
   if(VIEWS.indexOf(name)<0) name='home';
   document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('on',v.getAttribute('data-view')===name); });
   document.querySelectorAll('#tabs button').forEach(function(b){ b.setAttribute('aria-selected',String(b.getAttribute('data-go')===name)); });
   if(name==='sklad') renderRoster();
+  if(name==='zarzad') renderZarzad();
   if(name==='mecze'){ setSeg($('matchSeg'),'data-mv',MV); renderMatches(); }
   if(name==='osiagniecia') renderTimeline();
   if(name==='tabela') loadTable();
