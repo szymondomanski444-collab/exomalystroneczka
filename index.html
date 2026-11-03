@@ -253,7 +253,12 @@ h2.sec { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 
 .pl dt { font-size: .62rem; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
 .pl dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
 .pl dl { align-items: flex-end; justify-content: space-between; }
-.zopis { color: var(--muted); font-size: .9rem; line-height: 1.6; margin-top: 10px; white-space: pre-line; }
+.zopis { color: var(--muted); font-size: .9rem; line-height: 1.6; margin: 12px auto 0; max-width: 30ch; text-align: center; white-space: pre-line; }
+.zcard .info { text-align: center; }
+.zcard .zrola { margin: 4px 0 0; font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; color: var(--ice); }
+#zarzadBox { grid-template-columns: repeat(auto-fill, minmax(200px, 240px)); justify-content: center; }
+.zcard .art { aspect-ratio: 1 / 1; }
+.zcard .art img.ph { object-fit: cover; }
 .nomatch { position: relative; margin: 24px 0 4px; padding: 22px 16px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; display: grid; gap: 4px; }
 .nomatch b { font-family: var(--f-display); font-weight: 500; font-size: 1.15rem; }
 .nomatch span { color: var(--muted); font-size: .88rem; }
@@ -1052,9 +1057,9 @@ function renderZarzad(){
   var arr=list('zarzad');
   $('zarzadBox').innerHTML=arr.length?arr.map(function(p){
     var photo=p.zdjecie?'<img class="ph" src="'+esc(p.zdjecie)+'" alt="'+esc(p.nick||'')+'" loading="lazy">':'';
-    return '<article class="pl"><div class="art">'+photo+'</div><div class="info">'+
+    return '<article class="pl zcard"><div class="art">'+photo+'</div><div class="info">'+
       '<h3>'+esc(p.nick||'')+'</h3>'+
-      (p.rola?'<p>'+esc(p.rola)+'</p>':'')+
+      (p.rola?'<p class="zrola">'+esc(p.rola)+'</p>':'')+
       (p.opis?'<div class="zopis">'+esc(p.opis)+'</div>':'')+
       '</div></article>';
   }).join(''):'<div class="empty2">Brak osób w zarządzie. Dodaj je w panelu admina.</div>';
