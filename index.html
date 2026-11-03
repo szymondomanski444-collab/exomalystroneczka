@@ -203,6 +203,9 @@ h1.mark { margin: 18px 0 16px; font-family: var(--f-display); font-weight: 300; 
 .next { position: relative; overflow: hidden; background: linear-gradient(160deg, var(--navy), var(--bg2)); border: 1px solid var(--line); border-radius: 24px; padding: 28px; min-width: 0; }
 .next::before { content: ""; position: absolute; width: 260px; height: 260px; right: -90px; top: -90px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--glow) 45%, transparent); box-shadow: 0 0 0 32px color-mix(in srgb, var(--glow) 6%, transparent), 0 0 0 64px color-mix(in srgb, var(--glow) 4%, transparent); pointer-events: none; }
 .next.is-live::before { display: none; }
+.is-live .lhead .lpill { color: #ff4d4d; border-color: #ff4d4d; background: rgba(255,77,77,.12); }
+.is-live .lscore { margin: 10px 0 14px; }
+.is-live .lscore b { font-size: clamp(3.2rem, 14vw, 4.6rem); }
 .lhead { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 20px; }
 .lhead h2 { margin: 0; }
 .next h2 { position: relative; margin: 0 0 20px; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: var(--ice); font-weight: 700; }
