@@ -123,7 +123,7 @@ details.sec{margin-top:0}
 <body>
   <header class="bar" style="position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:rgba(0,0,0,.92);border-bottom:1px solid var(--line,#222)">
     <strong>Panel bota Discorda</strong>
-    <a href="/admin.html" style="color:inherit">← Panel admina</a>
+    <span><a href="/admin.html" style="color:inherit;margin-right:14px">← Panel admina</a><a href="#" id="blogout" style="color:inherit">Wyloguj</a></span>
   </header>
   <main class="wrap" style="padding:20px 16px 60px;max-width:900px;margin:0 auto">
     <div id="botBox"></div>
@@ -134,16 +134,25 @@ details.sec{margin-top:0}
 var OK='exo_admin_pass';
 var API='/api/';
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-function pass(){ try{ return sessionStorage.getItem(OK)||''; }catch(e){ return ''; } }
+function pass(){
+  try{ return localStorage.getItem(OK)||sessionStorage.getItem(OK)||''; }catch(e){ return ''; }
+}
+function clearPass(){
+  try{ localStorage.removeItem(OK); }catch(e){}
+  try{ sessionStorage.removeItem(OK); }catch(e){}
+}
 function gate(msg){
   var box=document.getElementById('botBox');
   box.innerHTML='<div class="item"><h3>Zaloguj się</h3><p class="hint">Podaj hasło admina, żeby zarządzać botem.</p>'+
     '<div class="addrow"><input type="password" id="bpass" placeholder="Hasło"><button type="button" class="primary" id="bgo">Wejdź</button></div>'+
+    '<label class="hint" style="display:block;margin-top:10px"><input type="checkbox" id="bkeep" checked> Zapamiętaj na tym urządzeniu</label>'+
     '<div class="hint err" id="bgerr">'+esc(msg||'')+'</div></div>';
   var go=document.getElementById('bgo');
   var doLogin=function(){
     var v=(document.getElementById('bpass').value||'').trim(); if(!v) return;
-    try{ sessionStorage.setItem(OK,v); }catch(e){}
+    var keep=document.getElementById('bkeep');
+    clearPass();
+    try{ (keep&&keep.checked?localStorage:sessionStorage).setItem(OK,v); }catch(e){}
     botErr=''; botState=null; botLoading=false; botRender();
   };
   go.addEventListener('click',doLogin);
@@ -160,7 +169,7 @@ function botLoad(){
   if(botLoading) return; botLoading=true;
   botCall({action:'get'}).then(function(res){
     botLoading=false;
-    if(!res.ok && res.status===401){ try{ sessionStorage.removeItem(OK); }catch(e){} gate('Hasło jest nieprawidłowe albo sesja wygasła.'); botLoading=false; return; }
+    if(!res.ok && res.status===401){ clearPass(); gate('Hasło jest nieprawidłowe albo sesja wygasła.'); botLoading=false; return; }
     if(!res.ok){ botErr=res.j.error||'Nie udało się wczytać ustawień bota.'; }
     else { botState=res.j.settings; botBans=res.j.bans||[]; botErr=res.j.bansError?('Lista banów: '+res.j.bansError):''; }
     botRender();
@@ -331,6 +340,7 @@ document.addEventListener('click',function(e){
     }).catch(function(){ b.disabled=false; botMsg('Brak połączenia z serwerem.',true); });
   }
 });
+document.getElementById('blogout').addEventListener('click',function(e){ e.preventDefault(); clearPass(); location.reload(); });
 if(!pass()) gate(''); else botRender();
 })();
 </script>
