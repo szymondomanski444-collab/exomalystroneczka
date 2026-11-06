@@ -12,6 +12,7 @@
 const crypto = require('crypto');
 const { readSettings, TICKET_CATEGORIES, panelComponents, rulesFields, rolesFromText } = require('../lib/bot-settings.js');
 const { addWarn, listWarns } = require('../lib/warns.js');
+const T = require('../lib/tactics.js');
 // waitUntil pozwala dokończyć zamykanie ticketa po odpowiedzi do Discorda (limit 3 s na odpowiedź)
 let waitUntil = null;
 try { waitUntil = require('@vercel/functions').waitUntil; } catch (e) { waitUntil = null; }
@@ -98,6 +99,9 @@ function reply(content, embeds, flags = EPHEMERAL) {
 }
 
 const noPerm = () => reply('Nie masz uprawnień do tej komendy.');
+// Taktyki widzi rola gracza (ustawiona w panelu) albo staff.
+const canSeeTactics = (m) => (!!CFG.playerRoleId && (m.roles || []).includes(CFG.playerRoleId)) || can(m, STAFF);
+const noTactics = () => reply('Taktyki są dostępne tylko dla graczy drużyny.');
 
 async function log(e) {
   const ch = cfgOr('logChannelId', 'DISCORD_LOG_CHANNEL_ID');
@@ -303,6 +307,29 @@ async function onCommand(i) {
       const sent = await dmUser(t.id, embed('Ostrzeżenie', 'Otrzymałeś ostrzeżenie na serwerze Exomaly.\nPowód: ' + reason, COLORS.warn));
       await log(embed('Ostrzeżenie', `<@${t.id}> · ${reason}\nPrzez: ${by}\nŁącznie ostrzeżeń: ${count}`, COLORS.warn));
       return reply(`Ostrzeżenie dla <@${t.id}> zapisane. Łącznie ostrzeżeń: ${count}.` + (sent ? '' : ' (nie udało się wysłać prywatnej wiadomości)'));
+    }
+    case 'taktyki': {
+      if (!canSeeTactics(m)) return noTactics();
+      const list = await T.list();
+      if (!list.length) return reply('Nie ma jeszcze zapisanych taktyk.');
+      return reply(undefined, [embed('Taktyki drużyny', list.map((t) => `• **${t.name}**${t.map ? ' · ' + t.map : ''}`).join('\n'), COLORS.info)]);
+    }
+    case 'taktyka': {
+      if (!canSeeTactics(m)) return noTactics();
+      const t = await T.find(val('nazwa'));
+      if (!t) return reply('Nie ma takiej taktyki. Sprawdź listę: /taktyki');
+      return reply(undefined, [embed(t.name + (t.map ? ' · ' + t.map : ''), t.text || 'Brak treści.', COLORS.info)]);
+    }
+    case 'taktyka-dodaj': {
+      if (!can(m, STAFF)) return noPerm();
+      const name = val('nazwa');
+      const r = await T.save({ name, map: val('mapa'), text: val('opis'), by: m.user.id });
+      return reply(`Taktyka „${name}” ${r === 'added' ? 'dodana' : 'zaktualizowana'}.`);
+    }
+    case 'taktyka-usun': {
+      if (!can(m, STAFF)) return noPerm();
+      const ok = await T.remove(val('nazwa'));
+      return reply(ok ? `Taktyka „${val('nazwa')}” usunięta.` : 'Nie ma takiej taktyki.');
     }
     case 'warnings': {
       if (!can(m, STAFF)) return noPerm();
